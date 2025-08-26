@@ -7,11 +7,22 @@ import Link from "next/link";
 
 const Navbar = () => {
   return (
-    <Box sx={{ width: "100%", textAlign: "center" }}>
+    <Box
+      sx={{
+        width: "100%",
+        textAlign: "center",
+        bgcolor: "background.paper",
+        borderRadius: 3,
+        boxShadow: 2,
+        py: 3,
+        px: 2,
+        border: "1px solid #23272f",
+      }}
+    >
       <Typography
         variant="h5"
         fontWeight={700}
-        sx={{ mb: 4, letterSpacing: 1, color: "#090909" }}
+        sx={{ mb: 4, letterSpacing: 1, color: "text.primary" }}
       >
         Money Manager
       </Typography>

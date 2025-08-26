@@ -13,7 +13,14 @@ const Page = () => {
   }, [router]);
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+      }}
+    >
       <CircularProgress />
     </Box>
   );

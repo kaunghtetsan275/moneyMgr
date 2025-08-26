@@ -4,12 +4,18 @@ import Navbar from "../components/navbar/Navbar";
 
 const layout = ({ children }) => {
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f5f6fa" }}>
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        bgcolor: "background.default",
+      }}
+    >
       <Box
         sx={{
           width: 240,
-          bgcolor: "#fff",
-          borderRight: "1px solid #e0e0e0",
+          bgcolor: "background.paper",
+          borderRight: "1px solid #23272f",
           boxShadow: 1,
           display: "flex",
           flexDirection: "column",
