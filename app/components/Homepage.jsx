@@ -32,7 +32,7 @@ const Homepage = () => {
       </Tooltip>
       <Modal
         open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
+        // onClose={() => setAddModalOpen(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >

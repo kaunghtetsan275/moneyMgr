@@ -22,13 +22,14 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const accountOptions = ["Cash", "Online"];
 
 const AddTransaction = ({ setAddModalOpen }) => {
   const [form, setForm] = useState({
-    dateTime: dayjs(),
+    dateTime: dayjs().toISOString(),
     account: "Cash",
     category: "",
     note: "",
@@ -38,6 +39,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
   const [openCategoryModal, setOpenCategoryModal] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [newCategoryType, setNewCategoryType] = useState("Expense");
+  const queryClient = useQueryClient();
 
   const {
     isPending,
@@ -54,6 +56,28 @@ const AddTransaction = ({ setAddModalOpen }) => {
       }).then((res) => res.json()),
   });
 
+  const mutation = useMutation({
+    mutationFn: async (submitData) => {
+      const res = await fetch("https://moneymgrbackend.onrender.com/api/data", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submitData),
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      setAddModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["getMonthlyTransactions"] });
+      toast.success("Transaction added successfully");
+    },
+    onError: () => {
+      toast.error("Failed to add transaction");
+    },
+  });
+
   // Filter categories by type after fetch
   const filteredCategories = React.useMemo(() => {
     if (!categoriesFetched || !Array.isArray(categoriesFetched)) return [];
@@ -65,11 +89,18 @@ const AddTransaction = ({ setAddModalOpen }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
   const handleDateTimeChange = (newValue) => {
-    setForm((prev) => ({ ...prev, dateTime: newValue }));
+    setForm((prev) => ({ ...prev, dateTime: dayjs(newValue).toISOString() }));
   };
 
   const handleTypeChange = (type) => {
-    setForm((prev) => ({ ...prev, type, category: "" }));
+    setForm({
+      dateTime: dayjs().toISOString(),
+      account: "Cash",
+      category: "",
+      note: "",
+      type,
+      amount: "",
+    });
   };
 
   const handleAddCategory = () => {
@@ -82,6 +113,26 @@ const AddTransaction = ({ setAddModalOpen }) => {
     setNewCategory("");
     setNewCategoryType("Expense");
     setOpenCategoryModal(false);
+  };
+
+  // Check if required fields are filled
+  const isFormValid =
+    form.dateTime && form.account && form.category && form.amount !== "";
+
+  // Handle submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+    const submitData = {
+      date: form.dateTime,
+      account: form.account,
+      category: form.category,
+      note: form.note || "",
+      currency: "THB", // You can make this dynamic if needed
+      type: form.type,
+      amount: Number(form.amount),
+    };
+    mutation.mutate(submitData);
   };
 
   return (
@@ -112,15 +163,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
             sx={{ cursor: "pointer", color: "grey.700" }}
           />
         </Box>
-        <Typography
-          variant="h4"
-          align="center"
-          gutterBottom
-          fontWeight={700}
-          sx={{ display: { xs: "block", sm: "none" } }}
-        >
-          Money Manager
-        </Typography>
+
         <Stack
           sx={{
             display: "flex",
@@ -199,13 +242,13 @@ const AddTransaction = ({ setAddModalOpen }) => {
           </Button>
         </Stack>
 
-        <Box component="form" noValidate autoComplete="off">
-          <Grid container spacing={2}>
+        <Box noValidate autoComplete="off">
+          <Grid component="form" container spacing={2} onSubmit={handleSubmit}>
             <Grid item xs={12}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
                   label="Date & Time"
-                  value={form.dateTime}
+                  value={dayjs(form.dateTime)}
                   onChange={handleDateTimeChange}
                   views={["year", "day", "hours", "minutes", "seconds"]}
                   renderInput={(params) => (
@@ -383,11 +426,12 @@ const AddTransaction = ({ setAddModalOpen }) => {
             </Grid>
             <Grid item xs={12}>
               <Button
+                type="submit"
                 variant="contained"
                 color={form.type === "Income" ? "success" : "error"}
                 fullWidth
                 sx={{ mt: 2 }}
-                disabled
+                disabled={!isFormValid}
               >
                 Add Transaction
               </Button>
