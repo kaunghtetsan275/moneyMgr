@@ -48,7 +48,6 @@ const TransactionView = () => {
               boxShadow: "0 4px 24px 0 rgba(25, 118, 210, 0.10)",
             }}
           >
-            {/* Left side: Icon + Chip */}
             <Box
               sx={{
                 display: "flex",

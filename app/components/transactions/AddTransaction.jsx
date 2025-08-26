@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import {
   RadioGroup,
   FormControlLabel,
   FormLabel,
+  CircularProgress,
 } from "@mui/material";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -21,16 +22,9 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import { useQuery } from "@tanstack/react-query";
 
 const accountOptions = ["Cash", "Online"];
-const defaultCategories = [
-  "Food",
-  "Transport",
-  "Shopping",
-  "Bills",
-  "Salary",
-  "Other",
-];
 
 const AddTransaction = ({ setAddModalOpen }) => {
   const [form, setForm] = useState({
@@ -41,9 +35,30 @@ const AddTransaction = ({ setAddModalOpen }) => {
     type: "Expense",
     amount: "",
   });
-  const [categories, setCategories] = useState([...defaultCategories]);
-  const [openModal, setOpenModal] = useState(false);
+  const [openCategoryModal, setOpenCategoryModal] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [newCategoryType, setNewCategoryType] = useState("Expense");
+
+  const {
+    isPending,
+    isError,
+    data: categoriesFetched,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["getCategories"],
+    queryFn: () =>
+      fetch("https://moneymgrbackend.onrender.com/api/category", {
+        method: "GET",
+        credentials: "include",
+      }).then((res) => res.json()),
+  });
+
+  // Filter categories by type after fetch
+  const filteredCategories = React.useMemo(() => {
+    if (!categoriesFetched || !Array.isArray(categoriesFetched)) return [];
+    return categoriesFetched.filter((cat) => cat.categoryType === form.type);
+  }, [categoriesFetched, form.type]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,16 +69,19 @@ const AddTransaction = ({ setAddModalOpen }) => {
   };
 
   const handleTypeChange = (type) => {
-    setForm((prev) => ({ ...prev, type }));
+    setForm((prev) => ({ ...prev, type, category: "" }));
   };
 
   const handleAddCategory = () => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories((prev) => [...prev, newCategory.trim()]);
-      setForm((prev) => ({ ...prev, category: newCategory.trim() }));
-    }
+    setForm((prev) => ({ ...prev, category: newCategory.trim() }));
+    setForm((prev) => ({
+      ...prev,
+      category: newCategory.trim(),
+      type: newCategoryType,
+    }));
     setNewCategory("");
-    setOpenModal(false);
+    setNewCategoryType("Expense");
+    setOpenCategoryModal(false);
   };
 
   return (
@@ -104,41 +122,83 @@ const AddTransaction = ({ setAddModalOpen }) => {
           Money Manager
         </Typography>
         <Stack
-          direction="row"
-          spacing={2}
-          sx={{ mb: 3, justifyContent: "center" }}
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 3,
+            mb: 3,
+            p: 1,
+            width: "100%",
+            borderRadius: 3,
+            background: "linear-gradient(145deg, #1e1e2f, #2a2a40)",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+          }}
         >
           <Button
-            variant={form.type === "Income" ? "contained" : "outlined"}
-            color="success"
+            variant="contained"
             onClick={() => handleTypeChange("Income")}
             sx={{
               fontWeight: 600,
-              borderRadius: 2,
-              minWidth: 120,
-              background: form.type === "Income" ? "#43a047" : undefined,
+              borderRadius: 3,
+              minWidth: 140,
+              py: 1.5,
+              fontSize: "1rem",
+              transition: "all 0.3s ease",
+              background:
+                form.type === "Income"
+                  ? "linear-gradient(135deg, #43a047, #66bb6a)"
+                  : "transparent",
+              border: "2px solid #43a047",
               color: form.type === "Income" ? "#fff" : "#43a047",
-              boxShadow: "none",
+              boxShadow:
+                form.type === "Income"
+                  ? "0 4px 12px rgba(67, 160, 71, 0.5)"
+                  : "inset 0 0 0 rgba(0,0,0,0)",
+              "&:hover": {
+                background:
+                  form.type === "Income"
+                    ? "linear-gradient(135deg, #388e3c, #43a047)"
+                    : "rgba(67, 160, 71, 0.1)",
+              },
             }}
           >
             Income
           </Button>
+
           <Button
-            variant={form.type === "Expense" ? "contained" : "outlined"}
-            color="error"
+            variant="contained"
             onClick={() => handleTypeChange("Expense")}
             sx={{
               fontWeight: 600,
-              borderRadius: 2,
-              minWidth: 120,
-              background: form.type === "Expense" ? "#ef5350" : undefined,
+              borderRadius: 3,
+              minWidth: 140,
+              py: 1.5,
+              fontSize: "1rem",
+              transition: "all 0.3s ease",
+              background:
+                form.type === "Expense"
+                  ? "linear-gradient(135deg, #ef5350, #e57373)"
+                  : "transparent",
+              border: "2px solid #ef5350",
               color: form.type === "Expense" ? "#fff" : "#ef5350",
-              boxShadow: "none",
+              boxShadow:
+                form.type === "Expense"
+                  ? "0 4px 12px rgba(239, 83, 80, 0.5)"
+                  : "inset 0 0 0 rgba(0,0,0,0)",
+              "&:hover": {
+                background:
+                  form.type === "Expense"
+                    ? "linear-gradient(135deg, #d32f2f, #ef5350)"
+                    : "rgba(239, 83, 80, 0.1)",
+              },
             }}
           >
             Expense
           </Button>
         </Stack>
+
         <Box component="form" noValidate autoComplete="off">
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -191,57 +251,106 @@ const AddTransaction = ({ setAddModalOpen }) => {
               >
                 Category
               </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                {categories.map((option) => (
-                  <Button
-                    key={option}
-                    variant={
-                      form.category === option ? "contained" : "outlined"
-                    }
-                    color={form.type === "Income" ? "success" : "error"}
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "150px",
+                  width: "100%",
+                  overflowY: "auto",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  p: 1,
+                  scrollbarWidth: "none",
+                  "&::-webkit-scrollbar": { display: "none" },
+                }}
+              >
+                {isPending ? (
+                  <CircularProgress size={28} />
+                ) : filteredCategories.length === 0 ? (
+                  <Typography
+                    variant="body2"
                     sx={{
-                      mb: 1,
-                      borderRadius: 2,
-                      textTransform: "none",
-                      background:
-                        form.category === option
-                          ? form.type === "Income"
-                            ? "#43a047"
-                            : "#ef5350"
-                          : undefined,
-                      color:
-                        form.category === option
-                          ? "#fff"
-                          : form.type === "Income"
-                          ? "#43a047"
-                          : "#ef5350",
-                      boxShadow: "none",
-                      backgroundImage: "none",
+                      color: "text.secondary",
+                      textAlign: "center",
+                      width: "100%",
                     }}
-                    onClick={() =>
-                      setForm((prev) => ({ ...prev, category: option }))
-                    }
                   >
-                    {option}
-                  </Button>
-                ))}
-                <Button
-                  variant="outlined"
-                  color="info"
-                  sx={{
-                    mb: 1,
-                    borderRadius: 2,
-                    textTransform: "none",
-                    minWidth: 40,
-                    px: 1,
-                    backgroundImage: "none",
-                  }}
-                  onClick={() => setOpenModal(true)}
-                  startIcon={<AddCircleOutlineIcon />}
-                >
-                  Add Category
-                </Button>
-              </Stack>
+                    No categories found.
+                  </Typography>
+                ) : (
+                  <Stack
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
+                    {filteredCategories.map((option) => (
+                      <Button
+                        key={option?._id}
+                        variant={
+                          form.category === option?.name
+                            ? "contained"
+                            : "outlined"
+                        }
+                        color={form.type === "Income" ? "success" : "error"}
+                        sx={{
+                          mb: 1,
+                          borderRadius: 2,
+                          textTransform: "none",
+                          background:
+                            form.category === option?.name
+                              ? form.type === "Income"
+                                ? "#43a047"
+                                : "#ef5350"
+                              : undefined,
+                          color:
+                            form.category === option?.name
+                              ? "#fff"
+                              : form.type === "Income"
+                              ? "#43a047"
+                              : "#ef5350",
+                          boxShadow: "none",
+                          backgroundImage: "none",
+                        }}
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            category: option?.name,
+                          }))
+                        }
+                      >
+                        {option?.name}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="outlined"
+                      color="info"
+                      sx={{
+                        mb: 1,
+                        borderRadius: 2,
+                        textTransform: "none",
+                        minWidth: 40,
+                        px: 1,
+                        backgroundImage: "none",
+                      }}
+                      onClick={() => setOpenCategoryModal(true)}
+                      startIcon={<AddCircleOutlineIcon />}
+                    >
+                      Add Category
+                    </Button>
+                  </Stack>
+                )}
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -285,7 +394,10 @@ const AddTransaction = ({ setAddModalOpen }) => {
             </Grid>
           </Grid>
         </Box>
-        <Modal open={openModal} onClose={() => setOpenModal(false)}>
+        <Modal
+          open={openCategoryModal}
+          onClose={() => setOpenCategoryModal(false)}
+        >
           <Box
             sx={{
               position: "absolute",
@@ -309,8 +421,30 @@ const AddTransaction = ({ setAddModalOpen }) => {
               fullWidth
               autoFocus
             />
+            <FormLabel component="legend" sx={{ mt: 2, mb: 1 }}>
+              Category Type
+            </FormLabel>
+            <RadioGroup
+              row
+              value={newCategoryType}
+              onChange={(e) => setNewCategoryType(e.target.value)}
+            >
+              <FormControlLabel
+                value="Income"
+                control={<Radio color="success" />}
+                label="Income"
+              />
+              <FormControlLabel
+                value="Expense"
+                control={<Radio color="error" />}
+                label="Expense"
+              />
+            </RadioGroup>
             <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
-              <Button variant="outlined" onClick={() => setOpenModal(false)}>
+              <Button
+                variant="outlined"
+                onClick={() => setOpenCategoryModal(false)}
+              >
                 Cancel
               </Button>
               <Button

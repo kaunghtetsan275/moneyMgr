@@ -12,7 +12,6 @@ const Homepage = () => {
       <TransactionView />
       <Tooltip title="Add Transaction" placement="left">
         <Fab
-          color="primary"
           aria-label="add"
           onClick={() => setAddModalOpen(true)}
           sx={{
@@ -21,6 +20,11 @@ const Homepage = () => {
             bottom: 32,
             zIndex: 1300,
             boxShadow: 4,
+            backgroundColor: "red",
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: "#b71c1c",
+            },
           }}
         >
           <AddIcon />
