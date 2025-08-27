@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   FormControlLabel,
   FormLabel,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -34,7 +35,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
     category: "",
     note: "",
     type: "Expense",
-    amount: "",
+    amount: 0,
   });
   const [openCategoryModal, setOpenCategoryModal] = useState(false);
   const [newCategory, setNewCategory] = useState("");
@@ -78,11 +79,18 @@ const AddTransaction = ({ setAddModalOpen }) => {
     },
   });
 
-  // Filter categories by type after fetch
   const filteredCategories = React.useMemo(() => {
     if (!categoriesFetched || !Array.isArray(categoriesFetched)) return [];
     return categoriesFetched.filter((cat) => cat.categoryType === form.type);
   }, [categoriesFetched, form.type]);
+
+  const categoriesRef = useRef(null);
+
+  useEffect(() => {
+    if (categoriesRef.current) {
+      categoriesRef.current.scrollTop = 0;
+    }
+  }, [filteredCategories, form.type]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,21 +111,40 @@ const AddTransaction = ({ setAddModalOpen }) => {
     });
   };
 
+  const categoryMutation = useMutation({
+    mutationFn: async (categorydata) => {
+      const res = await fetch(
+        "https://moneymgrbackend.onrender.com/api/category",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(categorydata),
+        }
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Category added successfully");
+      queryClient.invalidateQueries({ queryKey: ["getCategories"] });
+      setOpenCategoryModal(false);
+    },
+    onError: () => {
+      toast.error("Failed to add category");
+    },
+  });
+
   const handleAddCategory = () => {
-    setForm((prev) => ({ ...prev, category: newCategory.trim() }));
-    setForm((prev) => ({
-      ...prev,
-      category: newCategory.trim(),
-      type: newCategoryType,
-    }));
-    setNewCategory("");
-    setNewCategoryType("Expense");
-    setOpenCategoryModal(false);
+    categoryMutation.mutate({
+      name: newCategory.trim(),
+      categoryType: newCategoryType,
+    });
   };
 
-  // Check if required fields are filled
   const isFormValid =
-    form.dateTime && form.account && form.category && form.amount !== "";
+    form.dateTime && form.account && form.category && form.amount > 0;
 
   // Handle submit
   const handleSubmit = (e) => {
@@ -157,11 +184,22 @@ const AddTransaction = ({ setAddModalOpen }) => {
           position: "relative",
         }}
       >
-        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-          <CloseIcon
+        <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+          <IconButton
+            aria-label="close"
             onClick={() => setAddModalOpen(false)}
-            sx={{ cursor: "pointer", color: "grey.700" }}
-          />
+            size="small"
+            sx={{
+              bgcolor: "rgba(255,255,255,0.03)",
+              color: "text.primary",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.45)",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
+              borderRadius: 2,
+              p: 0.6,
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </Box>
 
         <Stack
@@ -172,6 +210,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
             alignItems: "center",
             gap: 3,
             mb: 3,
+            mt: 2,
             p: 1,
             width: "100%",
             borderRadius: 3,
@@ -296,19 +335,47 @@ const AddTransaction = ({ setAddModalOpen }) => {
               </Typography>
 
               <Box
+                ref={categoriesRef}
                 sx={{
                   display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "150px",
+                  justifyContent: "flex-start",
+                  alignItems: "flex-start",
+                  height: { xs: "150px", sm: "220px" },
                   width: "100%",
                   overflowY: "auto",
                   border: "1px solid",
                   borderColor: "divider",
                   borderRadius: 1,
                   p: 1,
-                  scrollbarWidth: "none",
-                  "&::-webkit-scrollbar": { display: "none" },
+                  boxSizing: "border-box",
+
+                  "&::-webkit-scrollbar": { width: 8, height: 8 },
+                  "&::-webkit-scrollbar-track": { background: "transparent" },
+                  "&::-webkit-scrollbar-thumb": {
+                    background:
+                      form.type === "Income"
+                        ? "linear-gradient(180deg, rgba(67,160,71,0.28), rgba(67,160,71,0.18))"
+                        : "linear-gradient(180deg, rgba(239,83,80,0.28), rgba(239,83,80,0.18))",
+                    borderRadius: 8,
+                    border: "2px solid rgba(0,0,0,0)",
+                    minHeight: 24,
+                    transition:
+                      "background-color 200ms ease, transform 200ms ease",
+                  },
+                  "&:hover::-webkit-scrollbar-thumb": {
+                    background:
+                      form.type === "Income"
+                        ? "linear-gradient(180deg, rgba(67,160,71,0.6), rgba(67,160,71,0.4))"
+                        : "linear-gradient(180deg, rgba(239,83,80,0.6), rgba(239,83,80,0.4))",
+                    transform: "scale(1.02)",
+                  },
+                  "&::-webkit-scrollbar-corner": { background: "transparent" },
+
+                  scrollbarWidth: "thin",
+                  scrollbarColor:
+                    (form.type === "Income"
+                      ? "rgba(67,160,71,0.35)"
+                      : "rgba(239,83,80,0.35)") + " transparent",
                 }}
               >
                 {isPending ? (
@@ -395,7 +462,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 )}
               </Box>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item width="100%">
               <TextField
                 label="Note"
                 name="note"
@@ -406,7 +473,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 rows={2}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item width="100%">
               <TextField
                 label="Amount"
                 name="amount"
@@ -424,7 +491,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 }}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item width="100%">
               <Button
                 type="submit"
                 variant="contained"
