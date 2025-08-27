@@ -1,11 +1,9 @@
+"use client";
 import React from "react";
+import AnalysisPage from "../../components/analysisComp/AnalysisPage";
 
 const page = () => {
-  return (
-    <div>
-      <h1>Analysis Page</h1>
-    </div>
-  );
+  return <AnalysisPage />;
 };
 
 export default page;

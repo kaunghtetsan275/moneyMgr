@@ -15,6 +15,7 @@ const Navbar = () => {
     <Box
       sx={{
         width: "100%",
+        height: "100%",
         textAlign: "center",
         bgcolor: "background.paper",
         borderRadius: 3,
@@ -86,7 +87,7 @@ const Navbar = () => {
           }}
           onClick={() => router.push("/pages/categories")}
         >
-          Category Management
+          Categories
         </Button>
       </Stack>
     </Box>
