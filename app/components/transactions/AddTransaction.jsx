@@ -35,7 +35,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
     category: "",
     note: "",
     type: "Expense",
-    amount: 0,
+    amount: "",
   });
   const [openCategoryModal, setOpenCategoryModal] = useState(false);
   const [newCategory, setNewCategory] = useState("");
@@ -155,7 +155,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
       account: form.account,
       category: form.category,
       note: form.note || "",
-      currency: "THB", // You can make this dynamic if needed
+      currency: "THB",
       type: form.type,
       amount: Number(form.amount),
     };

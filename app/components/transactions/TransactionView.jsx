@@ -8,6 +8,11 @@ import {
   Chip,
   IconButton,
   Divider,
+  TextField,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  InputAdornment,
 } from "@mui/material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -19,6 +24,10 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import EditIcon from "@mui/icons-material/Edit";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
@@ -107,6 +116,32 @@ const TransactionView = () => {
     onError: () => toast.error("Failed to delete transaction"),
   });
 
+  const updateTransactionMutation = useMutation({
+    mutationFn: async (transactionData) => {
+      const res = await fetch(
+        `https://moneymgrbackend.onrender.com/api/data/${transactionData._id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(transactionData),
+        }
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Transaction updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["getMonthlyTransactions"] });
+      setEditDialogOpen(false);
+      setEditData(null);
+    },
+    onError: () => {
+      toast.error("Failed to update transaction");
+    },
+  });
+
   useEffect(() => {
     const now = dayjs();
     setCurrentYear(now.year());
@@ -122,6 +157,37 @@ const TransactionView = () => {
   const handleCancelDelete = () => {
     setDeleteDialogOpen(false);
     setSelectedTxId(null);
+  };
+
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [editData, setEditData] = React.useState(null);
+
+  const openEditDialog = (tx) => {
+    // clone tx into editable object
+    setEditData({
+      ...tx,
+      date: tx.date || dayjs().toISOString(),
+      amount: tx.amount != null ? String(tx.amount) : "",
+      note: tx.note || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditDateTimeChange = (newVal) => {
+    setEditData((prev) => ({ ...prev, date: dayjs(newVal).toISOString() }));
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    if (!editData) return;
+    const payload = { ...editData, amount: Number(editData.amount) };
+    updateTransactionMutation.mutate(payload);
   };
 
   const totals = getTotals(transactionDetails?.data);
@@ -237,8 +303,7 @@ const TransactionView = () => {
                       color: net >= 0 ? "#43a047" : "#ef5350",
                     }}
                   >
-                    {net >= 0 ? "+" : "-"}
-                    {Math.abs(net)} THB
+                    {new Intl.NumberFormat().format(Math.abs(net))} THB
                   </Typography>
                 </Box>
               </Box>
@@ -305,6 +370,23 @@ const TransactionView = () => {
                       </Typography>
                     </Box>
 
+                    {/* Edit */}
+                    <IconButton
+                      onClick={() => openEditDialog(tx)}
+                      sx={{
+                        ml: 1,
+                        color: "#fff",
+                        bgcolor: "#121316",
+                        border: "1px solid rgba(255,255,255,0.04)",
+                        "&:hover": { bgcolor: "#1b1f24" },
+                        width: 32,
+                        height: 32,
+                      }}
+                      aria-label="edit-transaction"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+
                     {/* Delete */}
                     <IconButton
                       onClick={() => handleDeleteClick(tx._id)}
@@ -326,6 +408,93 @@ const TransactionView = () => {
           );
         })}
       </Stack>
+
+      <Dialog open={editDialogOpen}>
+        <DialogTitle>Edit Transaction</DialogTitle>
+        <DialogContent>
+          <Box component="form" onSubmit={handleEditSubmit} sx={{ mt: 1 }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Date & Time"
+                value={editData ? dayjs(editData.date) : dayjs()}
+                onChange={handleEditDateTimeChange}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth sx={{ mb: 2 }} />
+                )}
+              />
+            </LocalizationProvider>
+
+            <TextField
+              label="Category"
+              name="category"
+              value={editData?.category || ""}
+              onChange={handleEditChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Account"
+              name="account"
+              value={editData?.account || ""}
+              onChange={handleEditChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Note"
+              name="note"
+              value={editData?.note || ""}
+              onChange={handleEditChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Amount"
+              name="amount"
+              type="number"
+              value={editData?.amount || ""}
+              onChange={handleEditChange}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">THB</InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+
+            <RadioGroup
+              row
+              name="type"
+              value={editData?.type || "Expense"}
+              onChange={handleEditChange}
+            >
+              <FormControlLabel
+                value="Income"
+                control={<Radio />}
+                label="Income"
+              />
+              <FormControlLabel
+                value="Expense"
+                control={<Radio />}
+                label="Expense"
+              />
+            </RadioGroup>
+
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="flex-end"
+              sx={{ mt: 2 }}
+            >
+              <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="contained">
+                Confirm
+              </Button>
+            </Stack>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={deleteDialogOpen} onClose={handleCancelDelete}>
         <DialogTitle>Confirm Delete</DialogTitle>
