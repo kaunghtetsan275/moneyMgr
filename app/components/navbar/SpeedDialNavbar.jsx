@@ -1,14 +1,23 @@
+"use client";
+
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import SpeedDial from "@mui/material/SpeedDial";
 import SpeedDialAction from "@mui/material/SpeedDialAction";
 import HomeIcon from "@mui/icons-material/Home";
 import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import CategoryIcon from "@mui/icons-material/Category";
 
 const SpeedDialNavbar = () => {
   const actions = [
     { icon: <HomeIcon />, name: "Home", link: "/pages/home" },
+    {
+      icon: <CategoryIcon />,
+      name: "Category Management",
+      link: "/pages/categories",
+    },
     {
       icon: <FileDownloadIcon />,
       name: "Export Data",
@@ -17,6 +26,7 @@ const SpeedDialNavbar = () => {
     { icon: <BarChartIcon />, name: "Analysis", link: "/pages/analysis" },
   ];
 
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -67,13 +77,11 @@ const SpeedDialNavbar = () => {
               color: "#ffffff",
             },
           }}
-          sx={{
-            color: "#fff",
-            "&:hover": {
-              bgcolor: "#1e1e1e",
-            },
+          sx={{ color: "#fff", "&:hover": { bgcolor: "#1e1e1e" } }}
+          onClick={() => {
+            setOpen(false);
+            router.push(action.link);
           }}
-          onClick={() => (window.location.href = action.link)}
         />
       ))}
     </SpeedDial>

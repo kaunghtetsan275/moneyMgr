@@ -185,117 +185,146 @@ const TransactionView = () => {
       </Box>
 
       <Stack spacing={3}>
-        {groupByDay(transactionDetails?.data || []).map((group) => (
-          <Box key={group.day} sx={{ mb: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  bgcolor: "#23272f",
-                  color: "#fff",
-                  px: 2,
-                  py: 0.5,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                  minWidth: 40,
-                  textAlign: "center",
-                  mr: 1,
-                }}
-              >
-                {group.day}
-              </Typography>
-              <Chip
-                label={group.weekday}
-                size="small"
-                sx={{
-                  bgcolor: "#616161",
-                  color: "#fff",
-                  fontWeight: 600,
-                  mr: 1,
-                }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                {group.month}.{group.year}
-              </Typography>
-            </Box>
-            <Stack spacing={1}>
-              {group.transactions.map((tx) => (
-                <Paper
-                  key={tx._id}
-                  elevation={2}
-                  sx={{
-                    p: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    borderRadius: 2,
-                    bgcolor: "background.paper",
-                    boxShadow: "0 2px 8px rgba(25, 118, 210, 0.08)",
-                  }}
-                >
-                  {/* Icon */}
-                  <Box sx={{ textAlign: "center", minWidth: 48 }}>
-                    {tx.type === "Income" ? (
-                      <ArrowUpwardIcon
-                        sx={{ color: "#43a047" }}
-                        fontSize="medium"
-                      />
-                    ) : (
-                      <ArrowDownwardIcon
-                        sx={{ color: "#ef5350" }}
-                        fontSize="medium"
-                      />
-                    )}
-                  </Box>
-                  {/* Details */}
-                  <Box sx={{ flex: 1 }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Typography variant="subtitle1" fontWeight={600}>
-                        {tx.category}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {tx.account}
-                      </Typography>
-                    </Stack>
-                    {tx.note && (
-                      <Typography variant="body2" color="text.secondary">
-                        {tx.note}
-                      </Typography>
-                    )}
-                  </Box>
-                  {/* Amount */}
-                  <Box sx={{ textAlign: "right", minWidth: 80 }}>
-                    <Typography
-                      variant="body1"
-                      fontWeight={700}
-                      sx={{
-                        color: tx.type === "Income" ? "#43a047" : "#ef5350",
-                        fontSize: "1.1rem",
-                      }}
-                    >
-                      {tx.type === "Income" ? "+" : "-"}
-                      {tx.amount} {tx.currency}
-                    </Typography>
-                  </Box>
-                  {/* Delete */}
-                  <IconButton
-                    onClick={() => handleDeleteClick(tx._id)}
+        {groupByDay(transactionDetails?.data || []).map((group) => {
+          const groupTotals = getTotals(group.transactions);
+          const incomeVal =
+            groupTotals.income === "-" ? 0 : Number(groupTotals.income);
+          const expenseVal =
+            groupTotals.expense === "-" ? 0 : Number(groupTotals.expense);
+          const net = incomeVal - expenseVal;
+
+          return (
+            <Box
+              key={`${group.day}-${group.month}-${group.year}`}
+              sx={{ mb: 2 }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography
+                    variant="h6"
                     sx={{
-                      ml: 1,
+                      bgcolor: "#23272f",
                       color: "#fff",
-                      bgcolor: "#ef5350",
-                      "&:hover": { bgcolor: "#d32f2f" },
-                      width: 32,
-                      height: 32,
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                      fontWeight: 700,
+                      minWidth: 40,
+                      textAlign: "center",
                     }}
                   >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Paper>
-              ))}
-            </Stack>
-          </Box>
-        ))}
+                    {group.day}
+                  </Typography>
+                  <Chip
+                    label={group.weekday}
+                    size="small"
+                    sx={{ bgcolor: "#616161", color: "#fff", fontWeight: 600 }}
+                  />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ ml: 1 }}
+                  >
+                    {group.month}.{group.year}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ ml: "auto" }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 600,
+                      color: net >= 0 ? "#43a047" : "#ef5350",
+                    }}
+                  >
+                    {net >= 0 ? "+" : "-"}
+                    {Math.abs(net)} THB
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Stack spacing={1}>
+                {group.transactions.map((tx) => (
+                  <Paper
+                    key={tx._id}
+                    elevation={2}
+                    sx={{
+                      p: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      borderRadius: 2,
+                      bgcolor: "background.paper",
+                      boxShadow: "0 2px 8px rgba(25, 118, 210, 0.08)",
+                    }}
+                  >
+                    {/* Icon */}
+                    <Box sx={{ textAlign: "center", minWidth: 48 }}>
+                      {tx.type === "Income" ? (
+                        <ArrowUpwardIcon
+                          sx={{ color: "#43a047" }}
+                          fontSize="medium"
+                        />
+                      ) : (
+                        <ArrowDownwardIcon
+                          sx={{ color: "#ef5350" }}
+                          fontSize="medium"
+                        />
+                      )}
+                    </Box>
+
+                    {/* Details */}
+                    <Box sx={{ flex: 1 }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          {tx.category}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {tx.account}
+                        </Typography>
+                      </Stack>
+                      {tx.note && (
+                        <Typography variant="body2" color="text.secondary">
+                          {tx.note}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Amount */}
+                    <Box sx={{ textAlign: "right", minWidth: 80 }}>
+                      <Typography
+                        variant="body1"
+                        fontWeight={700}
+                        sx={{
+                          color: tx.type === "Income" ? "#43a047" : "#ef5350",
+                          fontSize: "1.1rem",
+                        }}
+                      >
+                        {tx.type === "Income" ? "+" : "-"}
+                        {tx.amount} {tx.currency}
+                      </Typography>
+                    </Box>
+
+                    {/* Delete */}
+                    <IconButton
+                      onClick={() => handleDeleteClick(tx._id)}
+                      sx={{
+                        ml: 1,
+                        color: "#fff",
+                        bgcolor: "#ef5350",
+                        "&:hover": { bgcolor: "#d32f2f" },
+                        width: 32,
+                        height: 32,
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Paper>
+                ))}
+              </Stack>
+            </Box>
+          );
+        })}
       </Stack>
 
       <Dialog open={deleteDialogOpen} onClose={handleCancelDelete}>
