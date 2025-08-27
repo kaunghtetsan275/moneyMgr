@@ -9,6 +9,7 @@ import { useMediaQuery, useTheme } from "@mui/material";
 const layout = ({ children }) => {
   const theme = useTheme();
   const isTabletOrBelow = useMediaQuery(theme.breakpoints.down("md"));
+  const isBigScreen = useMediaQuery(theme.breakpoints.up("md"));
 
   return (
     <Box
@@ -20,7 +21,7 @@ const layout = ({ children }) => {
         overflow: "hidden",
       }}
     >
-      {isTabletOrBelow ? (
+      {isTabletOrBelow && (
         <Box
           sx={{
             position: "fixed",
@@ -31,7 +32,9 @@ const layout = ({ children }) => {
         >
           <SpeedDialNavbar />
         </Box>
-      ) : (
+      )}
+
+      {isBigScreen && (
         <Box
           sx={{
             width: 240,

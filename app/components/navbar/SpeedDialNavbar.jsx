@@ -15,7 +15,7 @@ const SpeedDialNavbar = () => {
     { icon: <HomeIcon />, name: "Home", link: "/pages/home" },
     {
       icon: <CategoryIcon />,
-      name: "Category Management",
+      name: "Categories",
       link: "/pages/categories",
     },
     {
@@ -70,17 +70,22 @@ const SpeedDialNavbar = () => {
               p: 0.5,
             },
           })}
+          tooltipPlacement="right"
           slotProps={{
             tooltip: {
               open: true,
-              title: action.name,
-              color: "#ffffff",
+              title: (
+                <span style={{ whiteSpace: "nowrap" }}>{action.name}</span>
+              ),
+              sx: { whiteSpace: "nowrap" },
             },
           }}
           sx={{ color: "#fff", "&:hover": { bgcolor: "#1e1e1e" } }}
           onClick={() => {
             setOpen(false);
-            router.push(action.link);
+            setTimeout(() => {
+              router.push(action.link);
+            }, 100);
           }}
         />
       ))}
