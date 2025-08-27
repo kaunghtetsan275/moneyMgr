@@ -1,11 +1,16 @@
+"use client";
+
 import React from "react";
 import { Box, Typography, Button, Stack } from "@mui/material";
+import { useRouter } from "next/navigation";
 import HomeIcon from "@mui/icons-material/Home";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import Link from "next/link";
+import CategoryIcon from "@mui/icons-material/Category";
+// use native anchors to force full page reloads
 
 const Navbar = () => {
+  const router = useRouter();
   return (
     <Box
       sx={{
@@ -37,8 +42,7 @@ const Navbar = () => {
             fontWeight: 500,
             width: "100%",
           }}
-          component={Link}
-          href="/pages/home"
+          onClick={() => router.push("/pages/home")}
         >
           Home
         </Button>
@@ -52,8 +56,7 @@ const Navbar = () => {
             fontWeight: 500,
             width: "100%",
           }}
-          component={Link}
-          href="/pages/analysis"
+          onClick={() => router.push("/pages/analysis")}
         >
           Analysis
         </Button>
@@ -67,10 +70,23 @@ const Navbar = () => {
             fontWeight: 500,
             width: "100%",
           }}
-          component={Link}
-          href="/pages/exportinfo"
+          onClick={() => router.push("/pages/exportinfo")}
         >
           Export Data
+        </Button>
+        <Button
+          variant="outlined"
+          color="inherit"
+          startIcon={<CategoryIcon />}
+          sx={{
+            borderRadius: "12px",
+            textTransform: "none",
+            fontWeight: 500,
+            width: "100%",
+          }}
+          onClick={() => router.push("/pages/categories")}
+        >
+          Category Management
         </Button>
       </Stack>
     </Box>
