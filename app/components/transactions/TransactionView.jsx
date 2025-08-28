@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   InputAdornment,
   Select,
   MenuItem,
+  Button,
 } from "@mui/material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -23,7 +24,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import EditIcon from "@mui/icons-material/Edit";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -32,6 +32,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
+import { useCategoryQuery } from "../../services/useCategoryServices";
 
 function formatDateTime(dateString) {
   return dayjs(dateString).format("MMM D, YYYY h:mm A");
@@ -51,6 +52,8 @@ const Months = [
   "November",
   "December",
 ];
+
+const accountOptions = ["Cash", "Online"];
 
 // Group transactions by day
 function groupByDay(transactions) {
@@ -98,6 +101,17 @@ const TransactionView = () => {
   const [currentYear, setCurrentYear] = React.useState("");
   const [currentMonth, setCurrentMonth] = React.useState("");
   const queryClient = useQueryClient();
+  const [newCategory, setNewCategory] = useState("");
+
+  const {
+    isPending: isCategoriesPending,
+    isError,
+    data: categoriesFetched,
+    error,
+    refetch,
+  } = useCategoryQuery();
+
+  // category filtering for edit dialog will be computed after editData is available
 
   const { isPending, data: transactionDetails } = useQuery({
     queryKey: ["getMonthlyTransactions", currentYear, currentMonth],
@@ -177,6 +191,21 @@ const TransactionView = () => {
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [editData, setEditData] = React.useState(null);
+
+  // categories filtered by editData.type (so edit dialog shows matching categories)
+  const categoriesRef = useRef(null);
+
+  const filteredCategories = React.useMemo(() => {
+    if (!categoriesFetched || !Array.isArray(categoriesFetched)) return [];
+    const type = editData?.type || "Expense";
+    return categoriesFetched.filter((cat) => cat.categoryType === type);
+  }, [categoriesFetched, editData?.type]);
+
+  useEffect(() => {
+    if (categoriesRef.current) {
+      categoriesRef.current.scrollTop = 0;
+    }
+  }, [filteredCategories, editData?.type]);
 
   const openEditDialog = (tx) => {
     // clone tx into editable object
@@ -606,22 +635,139 @@ const TransactionView = () => {
               />
             </LocalizationProvider>
 
-            <TextField
-              label="Category"
-              name="category"
-              value={editData?.category || ""}
-              onChange={handleEditChange}
-              fullWidth
-              sx={{ mb: 2, fontSize: { xs: "0.9rem", sm: "1rem" } }}
-            />
-            <TextField
-              label="Account"
+            <Typography
+              variant="subtitle1"
+              sx={{ mb: 1, fontWeight: 600, color: "text.primary" }}
+            >
+              Category
+            </Typography>
+
+            <Box
+              ref={categoriesRef}
+              sx={{
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "flex-start",
+                height: { xs: "120px", sm: "180px" },
+                width: "100%",
+                overflowY: "auto",
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1,
+                p: 1,
+                boxSizing: "border-box",
+
+                "&::-webkit-scrollbar": { width: 8, height: 8 },
+                "&::-webkit-scrollbar-track": { background: "transparent" },
+                "&::-webkit-scrollbar-thumb": {
+                  background:
+                    editData?.type === "Income"
+                      ? "linear-gradient(180deg, rgba(67,160,71,0.28), rgba(67,160,71,0.18))"
+                      : "linear-gradient(180deg, rgba(239,83,80,0.28), rgba(239,83,80,0.18))",
+                  borderRadius: 8,
+                  border: "2px solid rgba(0,0,0,0)",
+                  minHeight: 24,
+                  transition:
+                    "background-color 200ms ease, transform 200ms ease",
+                },
+                "&:hover::-webkit-scrollbar-thumb": {
+                  background:
+                    editData?.type === "Income"
+                      ? "linear-gradient(180deg, rgba(67,160,71,0.6), rgba(67,160,71,0.4))"
+                      : "linear-gradient(180deg, rgba(239,83,80,0.6), rgba(239,83,80,0.4))",
+                  transform: "scale(1.02)",
+                },
+                "&::-webkit-scrollbar-corner": { background: "transparent" },
+
+                scrollbarWidth: "thin",
+              }}
+            >
+              {isCategoriesPending ? (
+                <CircularProgress size={24} />
+              ) : filteredCategories.length === 0 ? (
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", width: "100%" }}
+                >
+                  No categories found.
+                </Typography>
+              ) : (
+                <Stack
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  {filteredCategories.map((option) => (
+                    <Button
+                      key={option?._id}
+                      variant={
+                        editData?.category === option?.name
+                          ? "contained"
+                          : "outlined"
+                      }
+                      color={editData?.type === "Income" ? "success" : "error"}
+                      sx={{
+                        mb: 1,
+                        borderRadius: 2,
+                        textTransform: "none",
+                        background:
+                          editData?.category === option?.name
+                            ? editData?.type === "Income"
+                              ? "#43a047"
+                              : "#ef5350"
+                            : undefined,
+                        color:
+                          editData?.category === option?.name
+                            ? "#fff"
+                            : editData?.type === "Income"
+                            ? "#43a047"
+                            : "#ef5350",
+                        boxShadow: "none",
+                        backgroundImage: "none",
+                      }}
+                      onClick={() =>
+                        setEditData((prev) => ({
+                          ...prev,
+                          category: option?.name,
+                        }))
+                      }
+                    >
+                      {option?.name}
+                    </Button>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+            <RadioGroup
+              row
               name="account"
-              value={editData?.account || ""}
+              value={editData?.account || "Cash"}
               onChange={handleEditChange}
-              fullWidth
-              sx={{ mb: 2, fontSize: { xs: "0.9rem", sm: "1rem" } }}
-            />
+              sx={{ mb: 2 }}
+            >
+              {accountOptions.map((option) => (
+                <FormControlLabel
+                  key={option}
+                  value={option}
+                  control={
+                    <Radio
+                      sx={{
+                        color:
+                          editData?.type === "Income" ? "#43a047" : "#ef5350",
+                      }}
+                    />
+                  }
+                  label={option}
+                  sx={{ color: "text.primary", mr: 2 }}
+                />
+              ))}
+            </RadioGroup>
             <TextField
               label="Note"
               name="note"

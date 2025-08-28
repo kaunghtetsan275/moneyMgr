@@ -1,11 +1,9 @@
+"use client";
+import CategoryPage from "../../components/categoryComp/CategoryPage";
 import React from "react";
 
 const page = () => {
-  return (
-    <div>
-      <h1>Category Management</h1>
-    </div>
-  );
+  return <CategoryPage />;
 };
 
 export default page;
