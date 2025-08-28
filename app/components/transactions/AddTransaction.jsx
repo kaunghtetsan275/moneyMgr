@@ -25,6 +25,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useCategoryQuery } from "../../services/useCategoryServices";
 
 const accountOptions = ["Cash", "Online"];
 
@@ -48,14 +49,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
     data: categoriesFetched,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["getCategories"],
-    queryFn: () =>
-      fetch("https://moneymgrbackend.onrender.com/api/category", {
-        method: "GET",
-        credentials: "include",
-      }).then((res) => res.json()),
-  });
+  } = useCategoryQuery();
 
   const mutation = useMutation({
     mutationFn: async (submitData) => {
