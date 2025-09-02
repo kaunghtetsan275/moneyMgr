@@ -9,17 +9,21 @@ import {
   IconButton,
   Button,
   CircularProgress,
+  TextField,
+  Modal,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
 import CategoryIcon from "@mui/icons-material/Category";
+import CloseIcon from "@mui/icons-material/Close";
 import { useCategoryQuery } from "../../services/useCategoryServices";
-import { darken } from "@mui/material/styles";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
-const CategoryList = ({ title, categories = [], color }) => {
-  const darkBg = color ? darken(color, 0.5) : undefined;
-  const hoverBg = color ? darken(color, 0.7) : undefined;
-
+const CategoryList = ({ title, categories = [], color, onDelete }) => {
   return (
     <Paper
       elevation={3}
@@ -49,36 +53,71 @@ const CategoryList = ({ title, categories = [], color }) => {
         <Grid container spacing={1}>
           {categories.map((c) => (
             <Grid item key={c._id} xs={6} sm={4} md={3}>
-              <Button
-                variant="contained"
-                disableElevation
-                fullWidth
+              <Box
                 sx={{
-                  backgroundColor: darkBg || color,
-                  bgcolor: darkBg || color,
-                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "row",
+                  gap: 1,
                   borderRadius: 2,
-                  p: 1.25,
-                  textTransform: "none",
-                  justifyContent: "flex-start",
-                  border: `1px solid ${color}33`,
-                  boxShadow: `0 6px 18px ${darkBg || color}33`,
-                  transition: "transform 180ms ease, box-shadow 180ms ease",
+                  background:
+                    title === "Expense"
+                      ? "linear-gradient(135deg, #ef5350, #e57373)"
+                      : "linear-gradient(135deg, #43a047, #66bb6a)",
+                  border:
+                    title === "Expense"
+                      ? "2px solid #ef5350"
+                      : "2px solid #43a047",
+
+                  boxShadow:
+                    title === "Income"
+                      ? "0 4px 12px rgba(67, 160, 71, 0.5)"
+                      : "0 4px 12px rgba(239, 83, 80, 0.5)",
                   "&:hover": {
-                    transform: "translateY(-6px)",
-                    backgroundColor: hoverBg || darkBg || color,
-                    bgcolor: hoverBg || darkBg || color,
-                    boxShadow: `0 14px 36px ${hoverBg || darkBg || color}55`,
+                    transform: "translateY(-2px)",
                   },
                 }}
               >
-                <Typography
-                  variant="body2"
-                  sx={{ fontWeight: 700, color: "#fff" }}
+                <Button
+                  variant="contained"
+                  disableElevation
+                  fullWidth
+                  sx={{
+                    background:
+                      title === "Expense"
+                        ? "linear-gradient(135deg, #ef5350, #e57373)"
+                        : "linear-gradient(135deg, #43a047, #66bb6a)",
+                    color: "#fff",
+                    p: 1.25,
+                    textTransform: "none",
+                    justifyContent: "flex-start",
+                    transition: "transform 180ms ease, box-shadow 180ms ease",
+                  }}
                 >
-                  {c.name}
-                </Typography>
-              </Button>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: "#fff" }}
+                  >
+                    {c.name}
+                  </Typography>
+                </Button>
+
+                <IconButton
+                  size="small"
+                  onClick={() => onDelete && onDelete(c)}
+                  sx={{
+                    bgcolor: "rgba(0,0,0,0.35)",
+                    color: "#fff",
+                    p: 0.6,
+                    borderRadius: 1,
+                    "&:hover": { bgcolor: "rgba(0,0,0,0.45)" },
+                  }}
+                  aria-label={`delete ${c.name}`}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
             </Grid>
           ))}
         </Grid>
@@ -94,6 +133,68 @@ const CategoryPage = () => {
     data: categoriesFetched = [],
     refetch,
   } = useCategoryQuery();
+
+  const queryClient = useQueryClient();
+  const [openCategoryModal, setOpenCategoryModal] = React.useState(false);
+  const [newCategoryName, setNewCategoryName] = React.useState("");
+  const [newCategoryType, setNewCategoryType] = React.useState("Expense");
+
+  const categoryMutation = useMutation({
+    mutationFn: async (categorydata) => {
+      const res = await fetch(
+        "https://moneymgrbackend.onrender.com/api/category",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(categorydata),
+        }
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Category added successfully");
+      queryClient.invalidateQueries({ queryKey: ["getCategories"] });
+      setOpenCategoryModal(false);
+      setNewCategoryName("");
+    },
+    onError: () => {
+      toast.error("Failed to add category");
+    },
+  });
+
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] = React.useState(null);
+
+  const handleDeleteRequest = (category) => {
+    setDeleteTarget(category);
+    setDeleteModalOpen(true);
+  };
+
+  const categoryDeleteMutation = useMutation({
+    mutationFn: async (categoryId) => {
+      const res = await fetch(
+        `https://moneymgrbackend.onrender.com/api/category/${categoryId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Category Deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["getCategories"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete category");
+    },
+  });
 
   const incomeCats = (categoriesFetched || []).filter(
     (c) => c.categoryType === "Income"
@@ -118,7 +219,11 @@ const CategoryPage = () => {
           <IconButton onClick={() => refetch()} aria-label="refresh">
             <RefreshIcon />
           </IconButton>
-          <Button variant="contained" startIcon={<AddIcon />}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenCategoryModal(true)}
+          >
             Add Category
           </Button>
         </Stack>
@@ -137,6 +242,7 @@ const CategoryPage = () => {
               title="Income"
               categories={incomeCats}
               color="#43a047"
+              onDelete={handleDeleteRequest}
             />
           </Grid>
 
@@ -145,10 +251,119 @@ const CategoryPage = () => {
               title="Expense"
               categories={expenseCats}
               color="#ef5350"
+              onDelete={handleDeleteRequest}
             />
           </Grid>
         </Grid>
       )}
+      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            p: 3,
+            borderRadius: 2,
+            minWidth: 320,
+          }}
+        >
+          <Typography variant="h6" mb={1}>
+            Delete Category
+          </Typography>
+          <Typography mb={2}>
+            Are you sure you want to delete{" "}
+            <strong>{deleteTarget?.name}</strong>?
+          </Typography>
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Button
+              variant="outlined"
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                if (deleteTarget?._id) {
+                  categoryDeleteMutation.mutate(deleteTarget._id);
+                  setDeleteModalOpen(false);
+                  setDeleteTarget(null);
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
+      <Modal
+        open={openCategoryModal}
+        onClose={() => setOpenCategoryModal(false)}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            p: 3,
+            borderRadius: 2,
+            minWidth: 320,
+          }}
+        >
+          <Typography variant="h6" mb={2}>
+            Add Category
+          </Typography>
+          <TextField
+            label="Category name"
+            fullWidth
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <RadioGroup
+            row
+            value={newCategoryType}
+            onChange={(e) => setNewCategoryType(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <FormControlLabel
+              value="Income"
+              control={<Radio color="success" />}
+              label="Income"
+            />
+            <FormControlLabel
+              value="Expense"
+              control={<Radio color="error" />}
+              label="Expense"
+            />
+          </RadioGroup>
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Button
+              variant="outlined"
+              onClick={() => setOpenCategoryModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!newCategoryName.trim()}
+              onClick={() =>
+                categoryMutation.mutate({
+                  name: newCategoryName.trim(),
+                  categoryType: newCategoryType,
+                })
+              }
+            >
+              Add
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
     </Box>
   );
 };
