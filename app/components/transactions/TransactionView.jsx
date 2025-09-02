@@ -441,17 +441,31 @@ const TransactionView = () => {
                     sx={{
                       ml: { xs: "auto", sm: "auto" },
                       mt: { xs: 0, sm: 0 },
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 1.5,
                     }}
                   >
                     <Typography
                       variant="caption"
                       sx={{
                         fontWeight: 600,
-                        color: net >= 0 ? "#43a047" : "#ef5350",
+                        color: "#43a047",
                         fontSize: { xs: "0.85rem", sm: "1rem" },
                       }}
                     >
-                      {new Intl.NumberFormat().format(Math.abs(net))} THB
+                      {new Intl.NumberFormat().format(Math.abs(incomeVal))} THB
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#ef5350",
+                        fontSize: { xs: "0.85rem", sm: "1rem" },
+                      }}
+                    >
+                      {new Intl.NumberFormat().format(Math.abs(expenseVal))} THB
                     </Typography>
                   </Box>
                 </Box>

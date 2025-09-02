@@ -33,7 +33,7 @@ const Years = Array.from({ length: 10 }, (_, i) => 2029 - i);
 const AnalysisPage = () => {
   const [currentYear, setCurrentYear] = React.useState("");
   const [currentMonth, setCurrentMonth] = React.useState("");
-  // For BarChart: track selected year and type
+  const [viewMode, setViewMode] = React.useState("monthly"); // 'monthly' | 'yearly'
   const [barYear, setBarYear] = React.useState("");
   const [barType, setBarType] = React.useState("Expense");
 
@@ -55,24 +55,8 @@ const AnalysisPage = () => {
         `https://moneymgrbackend.onrender.com/api/data/${currentYear}/${currentMonth}`,
         { method: "GET", credentials: "include" }
       ).then((res) => res.json()),
-    enabled: Boolean(currentYear && currentMonth),
+    enabled: viewMode === "monthly" && Boolean(currentYear && currentMonth),
   });
-
-  // Convert transaction data to PieChart format
-  const pieData = React.useMemo(() => {
-    if (!transactionDetails?.data) return [];
-    const sums = {};
-    transactionDetails.data.forEach((tx) => {
-      if (!sums[tx.category]) sums[tx.category] = 0;
-      sums[tx.category] += Number(tx.amount);
-    });
-    // Convert to PieChart format
-    return Object.entries(sums).map(([category, value], idx) => ({
-      id: idx,
-      value,
-      label: category,
-    }));
-  }, [transactionDetails]);
 
   const { isPending: isPendingAllData, data: allTransactionData } = useQuery({
     queryKey: ["getAllTransactionData"],
@@ -83,10 +67,72 @@ const AnalysisPage = () => {
       }).then((res) => res.json()),
   });
 
-  // BarChart data transformation: monthly spend for selected year
+  const pieDataExpense = React.useMemo(() => {
+    const source =
+      viewMode === "monthly"
+        ? transactionDetails?.data
+        : allTransactionData?.data;
+    if (!source) return [];
+    const sums = {};
+    source.forEach((tx) => {
+      if (viewMode === "yearly") {
+        const txDate = dayjs(tx.date);
+        if (txDate.year() !== Number(currentYear)) return;
+      }
+      if (tx.type !== "Expense") return;
+      const category = tx.category || "Uncategorized";
+      sums[category] = (sums[category] || 0) + Number(tx.amount || 0);
+    });
+
+    return Object.entries(sums).map(([category, value], idx) => ({
+      id: idx,
+      value,
+      label: category,
+    }));
+  }, [transactionDetails, allTransactionData, viewMode, currentYear]);
+
+  const pieDataIncome = React.useMemo(() => {
+    const source =
+      viewMode === "monthly"
+        ? transactionDetails?.data
+        : allTransactionData?.data;
+    if (!source) return [];
+    const sums = {};
+    source.forEach((tx) => {
+      if (viewMode === "yearly") {
+        const txDate = dayjs(tx.date);
+        if (txDate.year() !== Number(currentYear)) return;
+      }
+      if (tx.type !== "Income") return;
+      const category = tx.category || "Uncategorized";
+      sums[category] = (sums[category] || 0) + Number(tx.amount || 0);
+    });
+
+    return Object.entries(sums).map(([category, value], idx) => ({
+      id: idx,
+      value,
+      label: category,
+    }));
+  }, [transactionDetails, allTransactionData, viewMode, currentYear]);
+
+  const pieTotalExpense = React.useMemo(
+    () => pieDataExpense.reduce((s, d) => s + Number(d.value || 0), 0),
+    [pieDataExpense]
+  );
+  const pieIncomeTotal = React.useMemo(
+    () => pieDataIncome.reduce((s, d) => s + Number(d.value || 0), 0),
+    [pieDataIncome]
+  );
+
+  const currencyFmt = new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "THB",
+    maximumFractionDigits: 0,
+  });
+
   const barChartData = React.useMemo(() => {
     if (!allTransactionData?.data || !barYear || !barType) return [];
-    // Group by month for selected year and selected type
+
     const monthlySums = Array(12).fill(0); // Jan-Dec
     allTransactionData.data.forEach((tx) => {
       const txDate = dayjs(tx.date);
@@ -117,7 +163,7 @@ const AnalysisPage = () => {
       }}
     >
       <TitleHeader text="Data Visualization" />
-      {/* PieChart Section */}
+
       <Box sx={{ width: "100%", mb: { xs: 2, sm: 3 } }}>
         <Box
           sx={{
@@ -154,10 +200,27 @@ const AnalysisPage = () => {
             ))}
           </Select>
           <Select
+            labelId="view-mode-select-label"
+            id="view-mode-select"
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value)}
+            sx={{
+              fontSize: { xs: "0.95rem", sm: "1.05rem" },
+              minWidth: 110,
+              bgcolor: "background.default",
+              borderRadius: 2,
+              boxShadow: 1,
+            }}
+          >
+            <MenuItem value="monthly">Monthly</MenuItem>
+            <MenuItem value="yearly">Yearly</MenuItem>
+          </Select>
+          <Select
             labelId="month-select-label"
             id="month-select"
             value={currentMonth}
             onChange={(e) => setCurrentMonth(e.target.value)}
+            disabled={viewMode === "yearly"}
             sx={{
               fontSize: { xs: "0.95rem", sm: "1.05rem" },
               minWidth: 110,
@@ -183,25 +246,60 @@ const AnalysisPage = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            gap: 2,
             minHeight: { xs: 180, sm: 220 },
+            flexWrap: "wrap",
           }}
         >
-          <PieChart
-            series={[
-              {
-                data: pieData,
-                innerRadius: 40,
-                outerRadius: 90,
-                paddingAngle: 2,
-                cornerRadius: 6,
-                label: ({ label, value }) => `${label}: ${value}`,
-                labelLine: { stroke: "#888", strokeWidth: 1 },
-              },
-            ]}
-            width={260}
-            height={220}
-            hideLegend
-          />
+          <Box sx={{ textAlign: "center", width: 260 }}>
+            <PieChart
+              series={[
+                {
+                  data: pieDataExpense,
+                  innerRadius: 40,
+                  outerRadius: 90,
+                  paddingAngle: 2,
+                  cornerRadius: 6,
+                  label: ({ label, value }) => `${label}: ${value}`,
+                  labelLine: { stroke: "#888", strokeWidth: 1 },
+                },
+              ]}
+              width={260}
+              height={220}
+              hideLegend
+            />
+            <Box sx={{ mt: 1 }}>
+              <div style={{ fontWeight: 700, color: "#ef5350" }}>Expense</div>
+              <div style={{ color: "text.secondary" }}>
+                {currencyFmt.format(pieTotalExpense)}
+              </div>
+            </Box>
+          </Box>
+
+          <Box sx={{ textAlign: "center", width: 260 }}>
+            <PieChart
+              series={[
+                {
+                  data: pieDataIncome,
+                  innerRadius: 40,
+                  outerRadius: 90,
+                  paddingAngle: 2,
+                  cornerRadius: 6,
+                  label: ({ label, value }) => `${label}: ${value}`,
+                  labelLine: { stroke: "#888", strokeWidth: 1 },
+                },
+              ]}
+              width={260}
+              height={220}
+              hideLegend
+            />
+            <Box sx={{ mt: 1 }}>
+              <div style={{ fontWeight: 700, color: "#43a047" }}>Income</div>
+              <div style={{ color: "text.secondary" }}>
+                {currencyFmt.format(pieIncomeTotal)}
+              </div>
+            </Box>
+          </Box>
         </Box>
         {isPending && (
           <Box sx={{ mt: 2, textAlign: "center", width: "100%" }}>
@@ -218,7 +316,7 @@ const AnalysisPage = () => {
           </Box>
         )}
       </Box>
-      {/* BarChart Section */}
+
       <Box sx={{ width: "100%", mt: { xs: 2, sm: 4 } }}>
         <Box
           sx={{
