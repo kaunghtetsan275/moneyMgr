@@ -275,7 +275,15 @@ const AddTransaction = ({ setAddModalOpen }) => {
           </Button>
         </Stack>
 
-        <Box noValidate autoComplete="off">
+        <Box
+          noValidate
+          autoComplete="off"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
           <Grid component="form" container spacing={2} onSubmit={handleSubmit}>
             <Grid item xs={12}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -290,7 +298,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 />
               </LocalizationProvider>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} width="100%">
               <FormLabel
                 component="legend"
                 sx={{ mb: 1, fontWeight: 600, color: "text.primary" }}
@@ -320,7 +328,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 ))}
               </RadioGroup>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} width="100%">
               <Typography
                 variant="subtitle1"
                 sx={{ mb: 1, fontWeight: 600, color: "text.primary" }}
@@ -373,7 +381,18 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 }}
               >
                 {isPending ? (
-                  <CircularProgress size={28} />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "100%",
+                      height: "100%",
+                      pt: 1.5,
+                    }}
+                  >
+                    <CircularProgress size={28} />
+                  </Box>
                 ) : filteredCategories.length === 0 ? (
                   <Typography
                     variant="body2"

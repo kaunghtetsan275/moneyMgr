@@ -16,8 +16,8 @@ const Homepage = () => {
           onClick={() => setAddModalOpen(true)}
           sx={{
             position: "fixed",
-            right: 32,
-            bottom: 32,
+            right: 15,
+            bottom: 25,
             zIndex: 1300,
             boxShadow: 4,
             backgroundColor: "red",
