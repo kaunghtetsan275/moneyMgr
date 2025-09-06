@@ -10,8 +10,8 @@ import TitleHeader from "../header/TitleHeader";
 import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { BarChart } from "@mui/x-charts/BarChart";
-import { PieChart } from "@mui/x-charts/PieChart";
+import Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
 
 const Months = [
   "January",
@@ -149,7 +149,7 @@ const AnalysisPage = () => {
   return (
     <Box
       sx={{
-        maxWidth: { xs: "100%", sm: 600, md: 800 },
+        width: "100%",
         mx: "auto",
         mt: { xs: 1, sm: 3 },
         p: { xs: 1, sm: 3 },
@@ -252,21 +252,59 @@ const AnalysisPage = () => {
           }}
         >
           <Box sx={{ textAlign: "center", width: 260 }}>
-            <PieChart
-              series={[
-                {
-                  data: pieDataExpense,
-                  innerRadius: 40,
-                  outerRadius: 90,
-                  paddingAngle: 2,
-                  cornerRadius: 6,
-                  label: ({ label, value }) => `${label}: ${value}`,
-                  labelLine: { stroke: "#888", strokeWidth: 1 },
+            <HighchartsReact
+              highcharts={Highcharts}
+              options={{
+                chart: {
+                  type: "pie",
+                  height: 220,
+                  backgroundColor: "transparent",
                 },
-              ]}
-              width={260}
-              height={220}
-              hideLegend
+                title: {
+                  text: "",
+                },
+                plotOptions: {
+                  pie: {
+                    innerSize: "50%",
+                    dataLabels: {
+                      enabled: true,
+                      format: "{point.name}: {point.y}",
+                      style: {
+                        color: "white",
+                        textOutline: "none",
+                      },
+                      backgroundColor: "none",
+                      borderWidth: 0,
+                      shadow: false,
+                      padding: 0,
+                      distance: 20,
+                      connectorWidth: 1,
+                      connectorColor: "#888",
+                    },
+                  },
+                },
+                series: [
+                  {
+                    name: "Expense",
+                    data: pieDataExpense.length
+                      ? pieDataExpense.map((item) => ({
+                          name: item.label,
+                          y: item.value,
+                        }))
+                      : [],
+                  },
+                ],
+                lang: {
+                  noData: "No data available",
+                },
+                noData: {
+                  style: {
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "#666",
+                  },
+                },
+              }}
             />
             <Box sx={{ mt: 1 }}>
               <div style={{ fontWeight: 700, color: "#ef5350" }}>Expense</div>
@@ -277,21 +315,59 @@ const AnalysisPage = () => {
           </Box>
 
           <Box sx={{ textAlign: "center", width: 260 }}>
-            <PieChart
-              series={[
-                {
-                  data: pieDataIncome,
-                  innerRadius: 40,
-                  outerRadius: 90,
-                  paddingAngle: 2,
-                  cornerRadius: 6,
-                  label: ({ label, value }) => `${label}: ${value}`,
-                  labelLine: { stroke: "#888", strokeWidth: 1 },
+            <HighchartsReact
+              highcharts={Highcharts}
+              options={{
+                chart: {
+                  type: "pie",
+                  height: 220,
+                  backgroundColor: "transparent",
                 },
-              ]}
-              width={260}
-              height={220}
-              hideLegend
+                title: {
+                  text: "",
+                },
+                plotOptions: {
+                  pie: {
+                    innerSize: "50%",
+                    dataLabels: {
+                      enabled: true,
+                      format: "{point.name}: {point.y}",
+                      style: {
+                        color: "white",
+                        textOutline: "none",
+                      },
+                      backgroundColor: "none",
+                      borderWidth: 0,
+                      shadow: false,
+                      padding: 0,
+                      distance: 20,
+                      connectorWidth: 1,
+                      connectorColor: "#888",
+                    },
+                  },
+                },
+                series: [
+                  {
+                    name: "Income",
+                    data: pieDataIncome.length
+                      ? pieDataIncome.map((item) => ({
+                          name: item.label,
+                          y: item.value,
+                        }))
+                      : [],
+                  },
+                ],
+                lang: {
+                  noData: "No data available",
+                },
+                noData: {
+                  style: {
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    color: "#666",
+                  },
+                },
+              }}
             />
             <Box sx={{ mt: 1 }}>
               <div style={{ fontWeight: 700, color: "#43a047" }}>Income</div>
@@ -397,37 +473,54 @@ const AnalysisPage = () => {
               Loading chart...
             </span>
           ) : (
-            <BarChart
-              dataset={barChartData}
-              xAxis={[
-                {
-                  scaleType: "band",
-                  dataKey: "month",
-                  label: "Month",
-                  tickLabelStyle: { fontSize: "0.95rem" },
-                  minCategoryGap: 0.2,
-                  tickPlacement: "middle",
-                },
-              ]}
-              series={[
-                {
-                  dataKey: "value",
-                  label:
-                    barType === "Expense"
-                      ? "Monthly Expense"
-                      : "Monthly Income",
-                  color: barType === "Expense" ? "#ef5350" : "#43a047",
-                },
-              ]}
-              width={barChartData.length > 8 ? 420 : 320}
-              height={240}
+            <Box
               sx={{
+                width: barChartData.length > 8 ? 420 : 320,
+                height: 240,
                 bgcolor: "background.default",
                 borderRadius: 2,
                 boxShadow: 1,
                 p: 2,
               }}
-            />
+            >
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: {
+                    type: "column",
+                    backgroundColor: "transparent",
+                    height: 220,
+                  },
+                  title: {
+                    text:
+                      barType === "Expense"
+                        ? "Monthly Expense"
+                        : "Monthly Income",
+                  },
+                  xAxis: {
+                    categories: barChartData.map((item) => item.month),
+                    title: {
+                      text: "Month",
+                    },
+                  },
+                  yAxis: {
+                    title: {
+                      text: "Amount (THB)",
+                    },
+                  },
+                  series: [
+                    {
+                      name: barType,
+                      data: barChartData.map((item) => item.value),
+                      color: barType === "Expense" ? "#ef5350" : "#43a047",
+                    },
+                  ],
+                  credits: {
+                    enabled: false,
+                  },
+                }}
+              />
+            </Box>
           )}
         </Box>
       </Box>
