@@ -246,19 +246,30 @@ const AnalysisPage = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 2,
-            minHeight: { xs: 180, sm: 220 },
+            gap: { xs: 2, sm: 4, md: 6 },
+            minHeight: { xs: 260, sm: 300, md: 400 },
             flexWrap: "wrap",
           }}
         >
-          <Box sx={{ textAlign: "center", width: 260 }}>
+          <Box
+            sx={{
+              textAlign: "center",
+              width: { xs: "100%", sm: "45%", md: "45%" },
+              maxWidth: "500px",
+            }}
+          >
             <HighchartsReact
               highcharts={Highcharts}
+              key={`expense-${viewMode}-${currentYear}-${currentMonth}`}
               options={{
                 chart: {
                   type: "pie",
-                  height: 220,
+                  height: "300",
                   backgroundColor: "transparent",
+                  marginTop: 0,
+                  marginBottom: 0,
+                  spacingTop: 0,
+                  spacingBottom: 0,
                 },
                 title: {
                   text: "",
@@ -283,10 +294,13 @@ const AnalysisPage = () => {
                     },
                   },
                 },
+                credits: {
+                  enabled: false,
+                },
                 series: [
                   {
                     name: "Expense",
-                    data: pieDataExpense.length
+                    data: pieDataExpense?.length
                       ? pieDataExpense.map((item) => ({
                           name: item.label,
                           y: item.value,
@@ -294,13 +308,10 @@ const AnalysisPage = () => {
                       : [],
                   },
                 ],
-                lang: {
-                  noData: "No data available",
-                },
                 noData: {
                   style: {
                     fontWeight: "bold",
-                    fontSize: "15px",
+                    fontSize: "16px",
                     color: "#666",
                   },
                 },
@@ -314,14 +325,25 @@ const AnalysisPage = () => {
             </Box>
           </Box>
 
-          <Box sx={{ textAlign: "center", width: 260 }}>
+          <Box
+            sx={{
+              textAlign: "center",
+              width: { xs: "100%", sm: "45%", md: "45%" },
+              maxWidth: "500px",
+            }}
+          >
             <HighchartsReact
               highcharts={Highcharts}
+              key={`income-${viewMode}-${currentYear}-${currentMonth}`}
               options={{
                 chart: {
                   type: "pie",
-                  height: 220,
+                  height: "300",
                   backgroundColor: "transparent",
+                  marginTop: 0,
+                  marginBottom: 0,
+                  spacingTop: 0,
+                  spacingBottom: 0,
                 },
                 title: {
                   text: "",
@@ -346,10 +368,13 @@ const AnalysisPage = () => {
                     },
                   },
                 },
+                credits: {
+                  enabled: false,
+                },
                 series: [
                   {
                     name: "Income",
-                    data: pieDataIncome.length
+                    data: pieDataIncome?.length
                       ? pieDataIncome.map((item) => ({
                           name: item.label,
                           y: item.value,
@@ -357,13 +382,10 @@ const AnalysisPage = () => {
                       : [],
                   },
                 ],
-                lang: {
-                  noData: "No data available",
-                },
                 noData: {
                   style: {
                     fontWeight: "bold",
-                    fontSize: "15px",
+                    fontSize: "16px",
                     color: "#666",
                   },
                 },
@@ -397,67 +419,199 @@ const AnalysisPage = () => {
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 2,
+            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
-            mb: { xs: 1, sm: 2 },
+            gap: 3,
+            mb: { xs: 2, sm: 3 },
           }}
         >
-          <Select
-            labelId="bar-year-select-label"
-            id="bar-year-select"
-            value={barYear}
-            onChange={(e) => setBarYear(e.target.value)}
+          <Box
             sx={{
-              fontSize: { xs: "0.95rem", sm: "1.05rem" },
-              minWidth: 90,
-              bgcolor: "background.default",
-              borderRadius: 2,
-              boxShadow: 1,
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {Years.map((year, index) => (
-              <MenuItem
-                key={index}
-                value={year}
-                sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" } }}
-              >
-                {year}
-              </MenuItem>
-            ))}
-          </Select>
-          <RadioGroup
-            row
-            value={barType}
-            onChange={(e) => setBarType(e.target.value)}
-            sx={{ ml: { sm: 2 }, gap: 2 }}
+            <Select
+              labelId="bar-year-select-label"
+              id="bar-year-select"
+              value={barYear}
+              onChange={(e) => setBarYear(e.target.value)}
+              sx={{
+                fontSize: { xs: "0.95rem", sm: "1.05rem" },
+                minWidth: 90,
+                bgcolor: "background.default",
+                borderRadius: 2,
+                boxShadow: 1,
+              }}
+            >
+              {Years.map((year, index) => (
+                <MenuItem
+                  key={index}
+                  value={year}
+                  sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" } }}
+                >
+                  {year}
+                </MenuItem>
+              ))}
+            </Select>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2,
+                width: "100%",
+                maxWidth: 400,
+                mx: "auto",
+              }}
+            >
+              {["Expense", "Income"].map((type) => (
+                <Box
+                  key={type}
+                  onClick={() => setBarType(type)}
+                  sx={{
+                    cursor: "pointer",
+                    padding: "12px 24px",
+                    borderRadius: 2,
+                    bgcolor: "rgba(0,0,0,0.04)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flex: 1,
+                    position: "relative",
+                    overflow: "hidden",
+                    border: "2px solid",
+                    borderColor:
+                      barType === type
+                        ? type === "Expense"
+                          ? "#ef5350"
+                          : "#43a047"
+                        : "transparent",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor:
+                        type === "Expense" ? "#ef5350" : "#43a047",
+                      opacity: barType === type ? 1 : 0,
+                      transition: "opacity 0.3s ease",
+                      zIndex: 0,
+                    },
+                    "& > span": {
+                      position: "relative",
+                      zIndex: 1,
+                      fontSize: "1rem",
+                      fontWeight: barType === type ? 600 : 500,
+                      color:
+                        barType === type
+                          ? "white"
+                          : type === "Expense"
+                          ? "#ef5350"
+                          : "#43a047",
+                      transition: "all 0.3s ease",
+                    },
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow:
+                        barType === type
+                          ? "none"
+                          : "0 4px 12px rgba(0,0,0,0.1)",
+                      "&::before": {
+                        opacity: barType === type ? 1 : 0.1,
+                      },
+                      "& > span": {
+                        color:
+                          barType === type
+                            ? "white"
+                            : type === "Expense"
+                            ? "#ef5350"
+                            : "#43a047",
+                      },
+                    },
+                  }}
+                >
+                  <span>{type}</span>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 3, sm: 6 },
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              p: 2,
+              borderRadius: 2,
+              bgcolor: "rgba(0,0,0,0.02)",
+            }}
           >
-            <FormControlLabel
-              value="Expense"
-              control={
-                <Radio
-                  sx={{
-                    color: "#ef5350",
-                    "&.Mui-checked": { color: "#ef5350" },
-                  }}
-                />
-              }
-              label="Expense"
-            />
-            <FormControlLabel
-              value="Income"
-              control={
-                <Radio
-                  sx={{
-                    color: "#43a047",
-                    "&.Mui-checked": { color: "#43a047" },
-                  }}
-                />
-              }
-              label="Income"
-            />
-          </RadioGroup>
+            <Box sx={{ textAlign: "center" }}>
+              <Box
+                sx={{
+                  fontSize: "0.9rem",
+                  color: "text.secondary",
+                  mb: 0.5,
+                  fontWeight: 500,
+                }}
+              >
+                Annual Expense
+              </Box>
+              <Box
+                sx={{
+                  fontSize: "1.2rem",
+                  fontWeight: 600,
+                  color: "#ef5350",
+                }}
+              >
+                {currencyFmt.format(
+                  allTransactionData?.data
+                    ?.filter(
+                      (tx) =>
+                        dayjs(tx.date).year() === Number(barYear) &&
+                        tx.type === "Expense"
+                    )
+                    .reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0
+                )}
+              </Box>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Box
+                sx={{
+                  fontSize: "0.9rem",
+                  color: "text.secondary",
+                  mb: 0.5,
+                  fontWeight: 500,
+                }}
+              >
+                Annual Income
+              </Box>
+              <Box
+                sx={{
+                  fontSize: "1.2rem",
+                  fontWeight: 600,
+                  color: "#43a047",
+                }}
+              >
+                {currencyFmt.format(
+                  allTransactionData?.data
+                    ?.filter(
+                      (tx) =>
+                        dayjs(tx.date).year() === Number(barYear) &&
+                        tx.type === "Income"
+                    )
+                    .reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0
+                )}
+              </Box>
+            </Box>
+          </Box>
         </Box>
         <Box
           sx={{
@@ -475,12 +629,17 @@ const AnalysisPage = () => {
           ) : (
             <Box
               sx={{
-                width: barChartData.length > 8 ? 420 : 320,
-                height: 240,
-                bgcolor: "background.default",
-                borderRadius: 2,
-                boxShadow: 1,
+                width: "100%",
+                maxWidth: "800px",
+                minHeight: 300,
+                borderRadius: 3,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
                 p: 2,
+                transition:
+                  "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
+                opacity: 1,
+                transform: "translateZ(0)",
+                willChange: "transform, opacity",
               }}
             >
               <HighchartsReact
@@ -489,24 +648,74 @@ const AnalysisPage = () => {
                   chart: {
                     type: "column",
                     backgroundColor: "transparent",
-                    height: 220,
+                    height: 300,
+                    style: {
+                      fontFamily:
+                        "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif",
+                    },
                   },
                   title: {
                     text:
                       barType === "Expense"
                         ? "Monthly Expense"
                         : "Monthly Income",
+                    style: {
+                      color: "white",
+                      fontSize: "16px",
+                      fontWeight: "500",
+                    },
                   },
                   xAxis: {
                     categories: barChartData.map((item) => item.month),
                     title: {
                       text: "Month",
+                      style: {
+                        color: "white",
+                      },
                     },
+                    labels: {
+                      style: {
+                        color: "white",
+                      },
+                    },
+                    lineColor: "rgba(255, 255, 255, 0.3)",
+                    tickColor: "rgba(255, 255, 255, 0.3)",
                   },
                   yAxis: {
                     title: {
                       text: "Amount (THB)",
+                      style: {
+                        color: "white",
+                      },
                     },
+                    labels: {
+                      style: {
+                        color: "white",
+                      },
+                    },
+                    gridLineColor: "rgba(255, 255, 255, 0.1)",
+                  },
+                  tooltip: {
+                    headerFormat:
+                      '<span style="font-size:12px">{point.key}</span><br/>',
+                    pointFormat:
+                      '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>{point.y:,.0f} THB</b>',
+                    backgroundColor: "rgba(255, 255, 255, 0.95)",
+                    borderWidth: 0,
+                    shadow: true,
+                  },
+                  plotOptions: {
+                    column: {
+                      borderRadius: 3,
+                      states: {
+                        hover: {
+                          brightness: -0.1,
+                        },
+                      },
+                    },
+                  },
+                  credits: {
+                    enabled: false,
                   },
                   series: [
                     {
@@ -515,9 +724,6 @@ const AnalysisPage = () => {
                       color: barType === "Expense" ? "#ef5350" : "#43a047",
                     },
                   ],
-                  credits: {
-                    enabled: false,
-                  },
                 }}
               />
             </Box>
