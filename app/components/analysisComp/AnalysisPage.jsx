@@ -704,6 +704,9 @@ const AnalysisPage = () => {
                     borderWidth: 0,
                     shadow: true,
                   },
+                  legend: {
+                    enabled: false, // Removes the legend completely
+                  },
                   plotOptions: {
                     column: {
                       borderRadius: 3,
@@ -712,6 +715,7 @@ const AnalysisPage = () => {
                           brightness: -0.1,
                         },
                       },
+                      showInLegend: false, // Ensures series doesn't show in legend
                     },
                   },
                   credits: {
