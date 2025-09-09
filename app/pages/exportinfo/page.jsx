@@ -1,7 +1,9 @@
+"use client";
+import ExportPage from "../../components/exportPage/ExportPage";
 import React from "react";
 
 const page = () => {
-  return <div>export info</div>;
+  return <ExportPage />;
 };
 
 export default page;

@@ -258,71 +258,89 @@ const AnalysisPage = () => {
               maxWidth: "500px",
             }}
           >
-            <HighchartsReact
-              highcharts={Highcharts}
-              key={`expense-${viewMode}-${currentYear}-${currentMonth}`}
-              options={{
-                chart: {
-                  type: "pie",
-                  height: "300",
-                  backgroundColor: "transparent",
-                  marginTop: 0,
-                  marginBottom: 0,
-                  spacingTop: 0,
-                  spacingBottom: 0,
-                },
-                title: {
-                  text: "",
-                },
-                plotOptions: {
-                  pie: {
-                    innerSize: "50%",
-                    dataLabels: {
-                      enabled: true,
-                      format: "{point.name}: {point.y}",
-                      style: {
-                        color: "white",
-                        textOutline: "none",
-                      },
-                      backgroundColor: "none",
-                      borderWidth: 0,
-                      shadow: false,
-                      padding: 0,
-                      distance: 20,
-                      connectorWidth: 1,
-                      connectorColor: "#888",
-                    },
-                  },
-                },
-                credits: {
-                  enabled: false,
-                },
-                series: [
-                  {
-                    name: "Expense",
-                    data: pieDataExpense?.length
-                      ? pieDataExpense.map((item) => ({
-                          name: item.label,
-                          y: item.value,
-                        }))
-                      : [],
-                  },
-                ],
-                noData: {
-                  style: {
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                    color: "#666",
-                  },
-                },
-              }}
-            />
-            <Box sx={{ mt: 1 }}>
-              <div style={{ fontWeight: 700, color: "#ef5350" }}>Expense</div>
-              <div style={{ color: "text.secondary" }}>
-                {currencyFmt.format(pieTotalExpense)}
-              </div>
-            </Box>
+            {isPendingAllData ? (
+              <span style={{ color: "#ef5350", fontWeight: 600 }}>
+                Loading chart...
+              </span>
+            ) : (
+              <>
+                {pieTotalExpense === 0 ? (
+                  <span style={{ color: "#ef5350", fontWeight: 600 }}>
+                    No data found
+                  </span>
+                ) : (
+                  <>
+                    <HighchartsReact
+                      highcharts={Highcharts}
+                      key={`expense-${viewMode}-${currentYear}-${currentMonth}`}
+                      options={{
+                        chart: {
+                          type: "pie",
+                          height: "300",
+                          backgroundColor: "transparent",
+                          marginTop: 0,
+                          marginBottom: 0,
+                          spacingTop: 0,
+                          spacingBottom: 0,
+                        },
+                        title: {
+                          text: "",
+                        },
+                        plotOptions: {
+                          pie: {
+                            innerSize: "50%",
+                            dataLabels: {
+                              enabled: true,
+                              format: "{point.name}: {point.y}",
+                              style: {
+                                color: "white",
+                                textOutline: "none",
+                              },
+                              backgroundColor: "none",
+                              borderWidth: 0,
+                              shadow: false,
+                              padding: 0,
+                              distance: 20,
+                              connectorWidth: 1,
+                              connectorColor: "#888",
+                            },
+                          },
+                        },
+                        credits: {
+                          enabled: false,
+                        },
+                        series: [
+                          {
+                            name: "Expense",
+                            data: pieDataExpense?.length
+                              ? pieDataExpense.map((item) => ({
+                                  name: item.label,
+                                  y: item.value,
+                                }))
+                              : [],
+                          },
+                        ],
+                        noData: {
+                          style: {
+                            fontWeight: "bold",
+                            fontSize: "16px",
+                            color: "#666",
+                          },
+                        },
+                      }}
+                    />
+                    <Box sx={{ mt: 1 }}>
+                      <div style={{ fontWeight: 700, color: "#ef5350" }}>
+                        Expense
+                      </div>
+                      <div style={{ color: "text.secondary" }}>
+                        {currencyFmt.format(pieTotalExpense)}
+                      </div>
+                    </Box>
+                  </>
+                )}
+              </>
+            )}
           </Box>
 
           <Box
@@ -332,71 +350,89 @@ const AnalysisPage = () => {
               maxWidth: "500px",
             }}
           >
-            <HighchartsReact
-              highcharts={Highcharts}
-              key={`income-${viewMode}-${currentYear}-${currentMonth}`}
-              options={{
-                chart: {
-                  type: "pie",
-                  height: "300",
-                  backgroundColor: "transparent",
-                  marginTop: 0,
-                  marginBottom: 0,
-                  spacingTop: 0,
-                  spacingBottom: 0,
-                },
-                title: {
-                  text: "",
-                },
-                plotOptions: {
-                  pie: {
-                    innerSize: "50%",
-                    dataLabels: {
-                      enabled: true,
-                      format: "{point.name}: {point.y}",
-                      style: {
-                        color: "white",
-                        textOutline: "none",
-                      },
-                      backgroundColor: "none",
-                      borderWidth: 0,
-                      shadow: false,
-                      padding: 0,
-                      distance: 20,
-                      connectorWidth: 1,
-                      connectorColor: "#888",
-                    },
-                  },
-                },
-                credits: {
-                  enabled: false,
-                },
-                series: [
-                  {
-                    name: "Income",
-                    data: pieDataIncome?.length
-                      ? pieDataIncome.map((item) => ({
-                          name: item.label,
-                          y: item.value,
-                        }))
-                      : [],
-                  },
-                ],
-                noData: {
-                  style: {
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                    color: "#666",
-                  },
-                },
-              }}
-            />
-            <Box sx={{ mt: 1 }}>
-              <div style={{ fontWeight: 700, color: "#43a047" }}>Income</div>
-              <div style={{ color: "text.secondary" }}>
-                {currencyFmt.format(pieIncomeTotal)}
-              </div>
-            </Box>
+            {isPendingAllData ? (
+              <span style={{ color: "#ef5350", fontWeight: 600 }}>
+                Loading chart...
+              </span>
+            ) : (
+              <>
+                {pieIncomeTotal === 0 ? (
+                  <span style={{ color: "#ef5350", fontWeight: 600 }}>
+                    No data available
+                  </span>
+                ) : (
+                  <>
+                    <HighchartsReact
+                      highcharts={Highcharts}
+                      key={`income-${viewMode}-${currentYear}-${currentMonth}`}
+                      options={{
+                        chart: {
+                          type: "pie",
+                          height: "300",
+                          backgroundColor: "transparent",
+                          marginTop: 0,
+                          marginBottom: 0,
+                          spacingTop: 0,
+                          spacingBottom: 0,
+                        },
+                        title: {
+                          text: "",
+                        },
+                        plotOptions: {
+                          pie: {
+                            innerSize: "50%",
+                            dataLabels: {
+                              enabled: true,
+                              format: "{point.name}: {point.y}",
+                              style: {
+                                color: "white",
+                                textOutline: "none",
+                              },
+                              backgroundColor: "none",
+                              borderWidth: 0,
+                              shadow: false,
+                              padding: 0,
+                              distance: 20,
+                              connectorWidth: 1,
+                              connectorColor: "#888",
+                            },
+                          },
+                        },
+                        credits: {
+                          enabled: false,
+                        },
+                        series: [
+                          {
+                            name: "Income",
+                            data: pieDataIncome?.length
+                              ? pieDataIncome.map((item) => ({
+                                  name: item.label,
+                                  y: item.value,
+                                }))
+                              : [],
+                          },
+                        ],
+                        noData: {
+                          style: {
+                            fontWeight: "bold",
+                            fontSize: "16px",
+                            color: "#666",
+                          },
+                        },
+                      }}
+                    />
+                    <Box sx={{ mt: 1 }}>
+                      <div style={{ fontWeight: 700, color: "#43a047" }}>
+                        Income
+                      </div>
+                      <div style={{ color: "text.secondary" }}>
+                        {currencyFmt.format(pieIncomeTotal)}
+                      </div>
+                    </Box>
+                  </>
+                )}
+              </>
+            )}
           </Box>
         </Box>
         {isPending && (

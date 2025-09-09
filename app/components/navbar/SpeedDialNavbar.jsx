@@ -9,6 +9,7 @@ import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import CategoryIcon from "@mui/icons-material/Category";
+import WidgetsIcon from "@mui/icons-material/Widgets";
 
 const SpeedDialNavbar = () => {
   const actions = [
@@ -39,15 +40,17 @@ const SpeedDialNavbar = () => {
         m: 0,
         zIndex: 1500,
         ".MuiSpeedDial-fab": {
-          background: "linear-gradient(135deg, #ef5350 0%, #23272f 100%)",
+          background:
+            "linear-gradient(135deg, rgb(255, 146, 78) 0%, #23272f 100%)",
           color: "#fff",
           boxShadow: 6,
           "&:hover": {
-            background: "linear-gradient(135deg, #b71c1c 0%, #23272f 100%)",
+            background:
+              "linear-gradient(135deg, rgb(235, 126, 58) 0%, #23272f 100%)",
           },
         },
       }}
-      icon={<SpeedDialIcon sx={{ color: "#fff" }} />}
+      icon={<WidgetsIcon sx={{ color: "#fff" }} />}
       onClose={handleClose}
       onOpen={handleOpen}
       open={open}
@@ -64,7 +67,7 @@ const SpeedDialNavbar = () => {
                   : action.name === "Export Data"
                   ? "#29b6f6"
                   : "#ffb300",
-              bgcolor: "#23272f",
+              // bgcolor: "#23272f",
               borderRadius: 2,
               fontSize: 28,
               p: 0.5,
@@ -80,7 +83,7 @@ const SpeedDialNavbar = () => {
               sx: { whiteSpace: "nowrap" },
             },
           }}
-          sx={{ color: "#fff", "&:hover": { bgcolor: "#1e1e1e" } }}
+          sx={{ color: "#fff" }}
           onClick={() => {
             setOpen(false);
             setTimeout(() => {
