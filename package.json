@@ -22,6 +22,8 @@
     "highcharts": "^12.4.0",
     "highcharts-no-data-to-display": "^0.1.7",
     "highcharts-react-official": "^3.2.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.1",
     "next": "15.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",

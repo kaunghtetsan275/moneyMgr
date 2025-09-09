@@ -20,10 +20,12 @@ const Homepage = () => {
             bottom: 25,
             zIndex: 1300,
             boxShadow: 4,
-            backgroundColor: "red",
             color: "#fff",
+            background: "linear-gradient(135deg, #ef5350 0%, #23272f 100%)",
+            color: "#fff",
+            boxShadow: 6,
             "&:hover": {
-              backgroundColor: "#b71c1c",
+              background: "linear-gradient(135deg, #b71c1c 0%, #23272f 100%)",
             },
           }}
         >
