@@ -13,6 +13,28 @@ import dayjs from "dayjs";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
+// Helper: normalize category keys to avoid duplicate slices when same logical
+// category appears with emoji variants, different case, or extra spaces.
+// Returns { key, label } where key is used for grouping and label is a cleaned
+// display label (emoji kept optionally – here we strip leading emoji so labels
+// are consistent in legend / datalabels).
+const normalizeCategory = (raw) => {
+  if (!raw) return { key: "uncategorized", label: "Uncategorized" };
+  let text = String(raw).trim();
+  // Remove zero-width / control chars
+  text = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  // Extract leading emojis (one or more) followed by optional space
+  // We'll strip them for the key + label to consolidate duplicates
+  const emojiRegex =
+    /^[\p{Emoji_Presentation}\p{Emoji}\p{Extended_Pictographic}]+\s*/u;
+  text = text.replace(emojiRegex, "").trim();
+  // Collapse multiple internal spaces
+  text = text.replace(/\s+/g, " ");
+  const label = text || "Uncategorized";
+  const key = label.toLowerCase();
+  return { key, label };
+};
+
 const Months = [
   "January",
   "February",
@@ -73,21 +95,22 @@ const AnalysisPage = () => {
         ? transactionDetails?.data
         : allTransactionData?.data;
     if (!source) return [];
-    const sums = {};
+    const sums = new Map();
     source.forEach((tx) => {
       if (viewMode === "yearly") {
         const txDate = dayjs(tx.date);
         if (txDate.year() !== Number(currentYear)) return;
       }
       if (tx.type !== "Expense") return;
-      const category = tx.category || "Uncategorized";
-      sums[category] = (sums[category] || 0) + Number(tx.amount || 0);
+      const { key, label } = normalizeCategory(tx.category || "Uncategorized");
+      const current = sums.get(key) || { label, value: 0 };
+      current.value += Number(tx.amount || 0);
+      sums.set(key, current);
     });
-
-    return Object.entries(sums).map(([category, value], idx) => ({
+    return Array.from(sums.values()).map((d, idx) => ({
       id: idx,
-      value,
-      label: category,
+      value: d.value,
+      label: d.label,
     }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
@@ -97,21 +120,22 @@ const AnalysisPage = () => {
         ? transactionDetails?.data
         : allTransactionData?.data;
     if (!source) return [];
-    const sums = {};
+    const sums = new Map();
     source.forEach((tx) => {
       if (viewMode === "yearly") {
         const txDate = dayjs(tx.date);
         if (txDate.year() !== Number(currentYear)) return;
       }
       if (tx.type !== "Income") return;
-      const category = tx.category || "Uncategorized";
-      sums[category] = (sums[category] || 0) + Number(tx.amount || 0);
+      const { key, label } = normalizeCategory(tx.category || "Uncategorized");
+      const current = sums.get(key) || { label, value: 0 };
+      current.value += Number(tx.amount || 0);
+      sums.set(key, current);
     });
-
-    return Object.entries(sums).map(([category, value], idx) => ({
+    return Array.from(sums.values()).map((d, idx) => ({
       id: idx,
-      value,
-      label: category,
+      value: d.value,
+      label: d.label,
     }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
