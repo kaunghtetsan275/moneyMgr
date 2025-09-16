@@ -16,183 +16,148 @@ export function buildCanonicalIndex(categories) {
   const canonicalCategories = [
     // Expense categories
     {
-      id: "68ad389ce990cc5e9e26baa4",
       name: "🌐 work",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baaf",
       name: "🏠 DORM TU or GV Rent",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab1",
       name: "🌐 TA salary",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab9",
       name: "🍗 Food BKD",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baa8",
       name: "🏪 7-11",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baaa",
       name: "☕ coffee",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baab",
       name: "🎁 Lazada",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baac",
-      name: "🍊🍊 Lotus",
+      name: "🍖🍖 Lotus",
       categoryType: "Expense",
     },
     { id: "68ad389ce990cc5e9e26baae", name: "😇 Me", categoryType: "Expense" },
     {
-      id: "68ad389ce990cc5e9e26bab0",
       name: "🥞 Food night market",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab6",
       name: "✂️ saloon",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab7",
       name: "🚲 Anywheel",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baba",
       name: "🏊 swim",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26babd",
       name: "🍌 Fruits",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baa6",
       name: "🚖 Transport",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baad",
       name: "☕ coffee BKD",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab2",
       name: "🏛️ Recharge",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26babc",
       name: "📈 Bangkok",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26babe",
       name: "🍕 Pizza",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baa5",
       name: "🍜 Food",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26baa7",
       name: "📒 Education",
       categoryType: "Expense",
     },
-    { id: "68ad389ce990cc5e9e26baa9", name: "🍗 KFC", categoryType: "Expense" },
+    { name: "🍗 KFC", categoryType: "Expense" },
     {
-      id: "68ad389ce990cc5e9e26bab3",
       name: "👦 RONIT",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab4",
       name: "🏡 GHAR",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab5",
       name: "🛂 immigration",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bab8",
       name: "🎉 New Year",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26babb",
       name: "🌴 Tour",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26babf",
       name: "💊 medical",
       categoryType: "Expense",
     },
     {
-      id: "68ad389ce990cc5e9e26bac0",
       name: "kuch bhi",
       categoryType: "Expense",
     },
 
     // Income categories
     {
-      id: "68ad3991a53fbafe55705814",
       name: "💰 TA Salary",
       categoryType: "Income",
     },
-    { id: "68ad3991a53fbafe55705817", name: "Other", categoryType: "Income" },
+    { name: "Other", categoryType: "Income" },
     {
-      id: "68ad3991a53fbafe55705815",
       name: "💵 Other's proctor duty",
       categoryType: "Income",
     },
     {
-      id: "68ad3991a53fbafe55705816",
       name: "🏅 Bonus",
       categoryType: "Income",
     },
     {
-      id: "68ad3991a53fbafe55705818",
       name: "😘 Other's people TA",
       categoryType: "Income",
     },
     {
-      id: "68ad3991a53fbafe55705813",
       name: "🤑 Allowance",
       categoryType: "Income",
     },
     {
-      id: "68ad3991a53fbafe55705819",
       name: "🌐 work salary",
       categoryType: "Income",
     },
     {
-      id: "68b2660281254fc33f42e886",
       name: "🤓 Bhaya USA",
       categoryType: "Income",
     },
     {
-      id: "68c8cf24f4d4016ad65f41f0",
-      name: "😎 Ronit",
+      name: "👦 RONIT",
       categoryType: "Income",
     },
   ];

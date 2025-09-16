@@ -292,6 +292,7 @@ const AnalysisPage = () => {
         else if (amount > 10000) label = "Large Income";
         else if (amount > 3000) label = "Medium Income";
         else label = "Other Income";
+        R;
       } // Create a stable key for aggregation
       const key = label.toLowerCase();
 
