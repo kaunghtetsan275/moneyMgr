@@ -12,27 +12,80 @@ import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
+import {
+  buildCanonicalIndex,
+  classifyCategory,
+  prettifyCategory,
+} from "../../services/categoryMapping";
+import { useCategoryQuery } from "../../services/useCategoryServices";
 
-// Helper: normalize category keys to avoid duplicate slices when same logical
-// category appears with emoji variants, different case, or extra spaces.
-// Returns { key, label } where key is used for grouping and label is a cleaned
-// display label (emoji kept optionally – here we strip leading emoji so labels
-// are consistent in legend / datalabels).
-const normalizeCategory = (raw) => {
-  if (!raw) return { key: "uncategorized", label: "Uncategorized" };
-  let text = String(raw).trim();
-  // Remove zero-width / control chars
-  text = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  // Extract leading emojis (one or more) followed by optional space
-  // We'll strip them for the key + label to consolidate duplicates
-  const emojiRegex =
-    /^[\p{Emoji_Presentation}\p{Emoji}\p{Extended_Pictographic}]+\s*/u;
-  text = text.replace(emojiRegex, "").trim();
-  // Collapse multiple internal spaces
-  text = text.replace(/\s+/g, " ");
-  const label = text || "Uncategorized";
-  const key = label.toLowerCase();
-  return { key, label };
+// Debug helper: logs categories and transaction details for debugging
+let _debugUnmatched = false;
+const debugUnmatchedCategories = (transactions, catIndex) => {
+  if (_debugUnmatched) return;
+  _debugUnmatched = true;
+
+  console.log("DEBUG: Analyzing", transactions.length, "transactions");
+
+  const unmatchedCategories = new Map();
+  const specialCases = [];
+
+  transactions.forEach((tx) => {
+    // Check for problematic transactions
+    if (
+      !tx.category ||
+      tx.category === ":" ||
+      tx.category === "-" ||
+      tx.category.trim() === ""
+    ) {
+      specialCases.push({
+        id: tx._id,
+        category: tx.category || "empty",
+        amount: tx.amount,
+        date: tx.date,
+        type: tx.type,
+        notes: tx.notes,
+      });
+      console.log(
+        "SPECIAL CASE:",
+        tx._id,
+        "category:",
+        JSON.stringify(tx.category),
+        "amount:",
+        tx.amount
+      );
+    }
+
+    const inputCategory = tx.category || "Uncategorized";
+    const normalizedInput = inputCategory
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .trim();
+    const canonicalCategory = classifyCategory(inputCategory, catIndex);
+
+    // If original and canonical are different (ignoring case/spacing), it's unmatched
+    const normalizedCanonical = canonicalCategory
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .trim();
+    if (
+      normalizedInput !== normalizedCanonical &&
+      normalizedInput !== "uncategorized"
+    ) {
+      if (!unmatchedCategories.has(inputCategory)) {
+        unmatchedCategories.set(inputCategory, canonicalCategory);
+        console.log("UNMATCHED:", inputCategory, "=>", canonicalCategory);
+      }
+    }
+  });
+
+  if (specialCases.length > 0) {
+    console.log(
+      "Found",
+      specialCases.length,
+      "transactions with problematic categories"
+    );
+  }
 };
 
 const Months = [
@@ -80,6 +133,10 @@ const AnalysisPage = () => {
     enabled: viewMode === "monthly" && Boolean(currentYear && currentMonth),
   });
 
+  // Get categories from backend API
+  const { isPending: isPendingCategories, data: categoryData } =
+    useCategoryQuery();
+
   const { isPending: isPendingAllData, data: allTransactionData } = useQuery({
     queryKey: ["getAllTransactionData"],
     queryFn: () =>
@@ -89,29 +146,102 @@ const AnalysisPage = () => {
       }).then((res) => res.json()),
   });
 
+  // Build canonical category index once we have data
+  const categoryIndex = React.useMemo(() => {
+    if (!allTransactionData?.data) return null;
+    // Build from the fixed category list defined in categoryMapping.js
+    const index = buildCanonicalIndex(categoryData?.data || []);
+
+    // Optional: debug unmatched categories
+    // debugUnmatchedCategories(allTransactionData.data, index);
+
+    return index;
+  }, [allTransactionData?.data, categoryData?.data]);
+
   const pieDataExpense = React.useMemo(() => {
     const source =
       viewMode === "monthly"
         ? transactionDetails?.data
         : allTransactionData?.data;
-    if (!source) return [];
+    if (!source || !categoryIndex) return [];
+
+    // Enable debugging to identify problematic categories
+    if (source.length > 0) debugUnmatchedCategories(source, categoryIndex);
+
     const sums = new Map();
+    // Map to track transactions with problematic categories for inspection
+    const problematicTxs = [];
+
     source.forEach((tx) => {
       if (viewMode === "yearly") {
         const txDate = dayjs(tx.date);
         if (txDate.year() !== Number(currentYear)) return;
       }
       if (tx.type !== "Expense") return;
-      const { key, label } = normalizeCategory(tx.category || "Uncategorized");
+
+      // Handle problematic categories - detect transactions with issues
+      let txCategory = tx.category;
+      if (
+        !txCategory ||
+        txCategory === ":" ||
+        txCategory === "" ||
+        txCategory === "-" ||
+        txCategory.trim() === "" ||
+        txCategory === "null" ||
+        txCategory === "undefined"
+      ) {
+        problematicTxs.push({
+          id: tx._id,
+          category: txCategory,
+          amount: tx.amount,
+          notes: tx.notes || "",
+        });
+
+        // Try to infer a category from notes or other fields if available
+        if (tx.notes && tx.notes.trim() !== "") {
+          // If notes contain usable text, try to use that for categorization
+          txCategory = tx.notes;
+        } else {
+          // Default to a meaningful catch-all category instead of "Uncategorized"
+          txCategory = "Other Expense";
+        }
+      }
+
+      // Use strict category classification with enhanced fallback strategy
+      const canonicalCategory = classifyCategory(txCategory, categoryIndex);
+
+      // Get a clean display name without emojis - ensure it's never empty and meaningful
+      let label = prettifyCategory(canonicalCategory);
+      if (!label || label.trim() === "" || label === "Uncategorized") {
+        // Try to assign a more specific category based on the transaction amount range
+        const amount = Number(tx.amount || 0);
+        if (amount > 50000) label = "Major Expense";
+        else if (amount > 10000) label = "Large Purchase";
+        else if (amount > 3000) label = "Medium Purchase";
+        else label = "Other Expense";
+      }
+
+      // Create a stable key for aggregation
+      const key = label.toLowerCase();
+
       const current = sums.get(key) || { label, value: 0 };
       current.value += Number(tx.amount || 0);
       sums.set(key, current);
     });
-    return Array.from(sums.values()).map((d, idx) => ({
-      id: idx,
-      value: d.value,
-      label: d.label,
-    }));
+    let arr = Array.from(sums.values());
+    // Sort descending by value for more meaningful ordering
+    arr.sort((a, b) => b.value - a.value);
+    // Optional: group very small slices into 'Others' to reduce clutter.
+    // Uncomment if desired.
+    // const MIN_PERCENT = 0.02; // 2%
+    // const total = arr.reduce((s, d) => s + d.value, 0) || 1;
+    // const main = [];
+    // let othersTotal = 0;
+    // arr.forEach(d => {
+    //   if (d.value / total < MIN_PERCENT) othersTotal += d.value; else main.push(d);
+    // });
+    // if (othersTotal > 0) main.push({ label: 'Others', value: othersTotal });
+    return arr.map((d, idx) => ({ id: idx, value: d.value, label: d.label }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
   const pieDataIncome = React.useMemo(() => {
@@ -119,7 +249,8 @@ const AnalysisPage = () => {
       viewMode === "monthly"
         ? transactionDetails?.data
         : allTransactionData?.data;
-    if (!source) return [];
+    if (!source || !categoryIndex) return [];
+
     const sums = new Map();
     source.forEach((tx) => {
       if (viewMode === "yearly") {
@@ -127,16 +258,50 @@ const AnalysisPage = () => {
         if (txDate.year() !== Number(currentYear)) return;
       }
       if (tx.type !== "Income") return;
-      const { key, label } = normalizeCategory(tx.category || "Uncategorized");
+
+      // Handle problematic categories - detect transactions with issues
+      let txCategory = tx.category;
+      if (
+        !txCategory ||
+        txCategory === ":" ||
+        txCategory === "" ||
+        txCategory === "-" ||
+        txCategory.trim() === "" ||
+        txCategory === "null" ||
+        txCategory === "undefined"
+      ) {
+        // Try to infer a category from notes or other fields if available
+        if (tx.notes && tx.notes.trim() !== "") {
+          // If notes contain usable text, try to use that for categorization
+          txCategory = tx.notes;
+        } else {
+          // Default to a meaningful catch-all category instead of "Uncategorized"
+          txCategory = "Other Income";
+        }
+      }
+
+      // Use strict category classification with enhanced fallback strategy
+      const canonicalCategory = classifyCategory(txCategory, categoryIndex);
+
+      // Get a clean display name without emojis - ensure it's never empty and meaningful
+      let label = prettifyCategory(canonicalCategory);
+      if (!label || label.trim() === "" || label === "Uncategorized") {
+        // Try to assign a more specific category based on the transaction amount range
+        const amount = Number(tx.amount || 0);
+        if (amount > 50000) label = "Major Income";
+        else if (amount > 10000) label = "Large Income";
+        else if (amount > 3000) label = "Medium Income";
+        else label = "Other Income";
+      } // Create a stable key for aggregation
+      const key = label.toLowerCase();
+
       const current = sums.get(key) || { label, value: 0 };
       current.value += Number(tx.amount || 0);
       sums.set(key, current);
     });
-    return Array.from(sums.values()).map((d, idx) => ({
-      id: idx,
-      value: d.value,
-      label: d.label,
-    }));
+    let arr = Array.from(sums.values());
+    arr.sort((a, b) => b.value - a.value);
+    return arr.map((d, idx) => ({ id: idx, value: d.value, label: d.label }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
   const pieTotalExpense = React.useMemo(
@@ -337,10 +502,22 @@ const AnalysisPage = () => {
                           {
                             name: "Expense",
                             data: pieDataExpense?.length
-                              ? pieDataExpense.map((item) => ({
-                                  name: item.label,
-                                  y: item.value,
-                                }))
+                              ? pieDataExpense.map((item) => {
+                                  // Ensure we always have a proper name for the chart slice
+                                  let displayName = item.label;
+                                  if (
+                                    !displayName ||
+                                    displayName.trim() === "" ||
+                                    displayName === ":" ||
+                                    displayName === "-"
+                                  ) {
+                                    displayName = "Other Expense";
+                                  }
+                                  return {
+                                    name: displayName,
+                                    y: item.value,
+                                  };
+                                })
                               : [],
                           },
                         ],
@@ -429,10 +606,22 @@ const AnalysisPage = () => {
                           {
                             name: "Income",
                             data: pieDataIncome?.length
-                              ? pieDataIncome.map((item) => ({
-                                  name: item.label,
-                                  y: item.value,
-                                }))
+                              ? pieDataIncome.map((item) => {
+                                  // Ensure we always have a proper name for the chart slice
+                                  let displayName = item.label;
+                                  if (
+                                    !displayName ||
+                                    displayName.trim() === "" ||
+                                    displayName === ":" ||
+                                    displayName === "-"
+                                  ) {
+                                    displayName = "Other Income";
+                                  }
+                                  return {
+                                    name: displayName,
+                                    y: item.value,
+                                  };
+                                })
                               : [],
                           },
                         ],
