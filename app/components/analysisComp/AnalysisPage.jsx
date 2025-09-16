@@ -13,25 +13,43 @@ import dayjs from "dayjs";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-// Helper: normalize category keys to avoid duplicate slices when same logical
-// category appears with emoji variants, different case, or extra spaces.
-// Returns { key, label } where key is used for grouping and label is a cleaned
-// display label (emoji kept optionally – here we strip leading emoji so labels
-// are consistent in legend / datalabels).
+// Enhanced helper: normalize category names aggressively so that variants with
+// different emojis, casing, extra whitespace, punctuation duplicates, or
+// unicode composed vs decomposed forms collapse into one key.
+// Returns { key, label } where:
+//   key   -> internal grouping key
+//   label -> cleaned display label (without emojis) for consistent chart labels
+// If you want to preserve the *first* emoji for display, set PRESERVE_EMOJI true.
+const PRESERVE_EMOJI = false;
 const normalizeCategory = (raw) => {
   if (!raw) return { key: "uncategorized", label: "Uncategorized" };
-  let text = String(raw).trim();
+  let original = String(raw);
+  // Unicode normalize (NFKC) to collapse different forms
+  let text = original.normalize("NFKC").trim();
   // Remove zero-width / control chars
   text = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  // Extract leading emojis (one or more) followed by optional space
-  // We'll strip them for the key + label to consolidate duplicates
-  const emojiRegex =
-    /^[\p{Emoji_Presentation}\p{Emoji}\p{Extended_Pictographic}]+\s*/u;
-  text = text.replace(emojiRegex, "").trim();
-  // Collapse multiple internal spaces
-  text = text.replace(/\s+/g, " ");
-  const label = text || "Uncategorized";
-  const key = label.toLowerCase();
+  // Capture first emoji sequence if we want to preserve it visually
+  let firstEmoji = "";
+  if (PRESERVE_EMOJI) {
+    const leadingEmojiMatch = text.match(
+      /^[\p{Emoji_Presentation}\p{Emoji}\p{Extended_Pictographic}]+/u
+    );
+    if (leadingEmojiMatch) firstEmoji = leadingEmojiMatch[0] + " ";
+  }
+  // Remove *all* emojis for the base label
+  const allEmojiRegex =
+    /[\p{Emoji_Presentation}\p{Emoji}\p{Extended_Pictographic}]/gu;
+  text = text.replace(allEmojiRegex, "");
+  // Replace underscores with space, collapse multiple spaces
+  text = text.replace(/[_]+/g, " ").replace(/\s+/g, " ").trim();
+  // Remove leading/trailing punctuation like ':' or '-' or '.'
+  text = text
+    .replace(/^[\-:.,]+/, "")
+    .replace(/[\-:.,]+$/, "")
+    .trim();
+  const base = text || "Uncategorized";
+  const label = (firstEmoji + base).trim();
+  const key = base.toLowerCase();
   return { key, label };
 };
 
@@ -107,11 +125,20 @@ const AnalysisPage = () => {
       current.value += Number(tx.amount || 0);
       sums.set(key, current);
     });
-    return Array.from(sums.values()).map((d, idx) => ({
-      id: idx,
-      value: d.value,
-      label: d.label,
-    }));
+    let arr = Array.from(sums.values());
+    // Sort descending by value for more meaningful ordering
+    arr.sort((a, b) => b.value - a.value);
+    // Optional: group very small slices into 'Others' to reduce clutter.
+    // Uncomment if desired.
+    // const MIN_PERCENT = 0.02; // 2%
+    // const total = arr.reduce((s, d) => s + d.value, 0) || 1;
+    // const main = [];
+    // let othersTotal = 0;
+    // arr.forEach(d => {
+    //   if (d.value / total < MIN_PERCENT) othersTotal += d.value; else main.push(d);
+    // });
+    // if (othersTotal > 0) main.push({ label: 'Others', value: othersTotal });
+    return arr.map((d, idx) => ({ id: idx, value: d.value, label: d.label }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
   const pieDataIncome = React.useMemo(() => {
@@ -132,11 +159,9 @@ const AnalysisPage = () => {
       current.value += Number(tx.amount || 0);
       sums.set(key, current);
     });
-    return Array.from(sums.values()).map((d, idx) => ({
-      id: idx,
-      value: d.value,
-      label: d.label,
-    }));
+    let arr = Array.from(sums.values());
+    arr.sort((a, b) => b.value - a.value);
+    return arr.map((d, idx) => ({ id: idx, value: d.value, label: d.label }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
   const pieTotalExpense = React.useMemo(
