@@ -89,11 +89,13 @@ const AnalysisPage = () => {
       sums[category] = (sums[category] || 0) + Number(tx.amount || 0);
     });
 
-    return Object.entries(sums).map(([category, value], idx) => ({
-      id: idx,
-      value,
-      label: category,
-    }));
+    return Object.entries(sums)
+      .sort((a, b) => b[1] - a[1])
+      .map(([category, value], idx) => ({
+        id: idx,
+        value,
+        label: category,
+      }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
   const pieDataIncome = React.useMemo(() => {
@@ -113,11 +115,13 @@ const AnalysisPage = () => {
       sums[category] = (sums[category] || 0) + Number(tx.amount || 0);
     });
 
-    return Object.entries(sums).map(([category, value], idx) => ({
-      id: idx,
-      value,
-      label: category,
-    }));
+    return Object.entries(sums)
+      .sort((a, b) => b[1] - a[1])
+      .map(([category, value], idx) => ({
+        id: idx,
+        value,
+        label: category,
+      }));
   }, [transactionDetails, allTransactionData, viewMode, currentYear]);
 
   const pieTotalExpense = React.useMemo(
@@ -296,7 +300,7 @@ const AnalysisPage = () => {
                             innerSize: "50%",
                             dataLabels: {
                               enabled: true,
-                              format: "{point.name}: {point.y}",
+                              format: "{point.name}: ฿{point.y:,.0f}",
                               style: {
                                 color: "white",
                                 textOutline: "none",
@@ -388,7 +392,7 @@ const AnalysisPage = () => {
                             innerSize: "50%",
                             dataLabels: {
                               enabled: true,
-                              format: "{point.name}: {point.y}",
+                              format: "{point.name}: ฿{point.y:,.0f}",
                               style: {
                                 color: "white",
                                 textOutline: "none",
@@ -740,7 +744,7 @@ const AnalysisPage = () => {
                     headerFormat:
                       '<span style="font-size:12px">{point.key}</span><br/>',
                     pointFormat:
-                      '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>{point.y:,.0f} THB</b>',
+                      '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>฿{point.y:,.0f}</b>',
                     backgroundColor: "rgba(255, 255, 255, 0.95)",
                     borderWidth: 0,
                     shadow: true,

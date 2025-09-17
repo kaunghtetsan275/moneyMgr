@@ -476,6 +476,10 @@ const TransactionView = () => {
                       key={tx._id}
                       elevation={2}
                       sx={{
+                        mb: 1,
+                        borderLeft: "4px solid",
+                        borderColor:
+                          tx.type === "Expense" ? "#ef5350" : "#43a047",
                         p: { xs: 1, sm: 2 },
                         display: "flex",
                         alignItems: "center",
