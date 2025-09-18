@@ -568,6 +568,17 @@ const AddTransaction = ({ setAddModalOpen }) => {
               <Button
                 variant="outlined"
                 onClick={() => setOpenCategoryModal(false)}
+                sx={{
+                  background: "#d14313",
+                  color: "#ffffff",
+                  boxShadow: "none",
+                  backgroundImage: "none",
+                  borderColor: "#d14313",
+                  "&:hover": {
+                    background: "#b7370f",
+                    borderColor: "#b7370f",
+                  },
+                }}
               >
                 Cancel
               </Button>
@@ -575,6 +586,13 @@ const AddTransaction = ({ setAddModalOpen }) => {
                 variant="contained"
                 onClick={handleAddCategory}
                 disabled={!newCategory.trim()}
+                sx={{
+                  background: "#137fd1",
+                  color: "#ffffff",
+                  boxShadow: "none",
+                  backgroundImage: "none",
+                  "&:hover": { background: "#0f6fbf" },
+                }}
               >
                 Add
               </Button>

@@ -838,14 +838,32 @@ const TransactionView = () => {
             >
               <Button
                 onClick={() => setEditDialogOpen(false)}
-                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                sx={{
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                  background: "#d14313",
+                  color: "#ffffff",
+                  boxShadow: "none",
+                  backgroundImage: "none",
+                  borderColor: "#d14313",
+                  "&:hover": {
+                    background: "#b7370f",
+                    borderColor: "#b7370f",
+                  },
+                }}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 variant="contained"
-                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                sx={{
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                  background: "#137fd1",
+                  color: "#ffffff",
+                  boxShadow: "none",
+                  backgroundImage: "none",
+                  "&:hover": { background: "#0f6fbf" },
+                }}
               >
                 Confirm
               </Button>
@@ -866,7 +884,18 @@ const TransactionView = () => {
         <DialogActions>
           <Button
             onClick={handleCancelDelete}
-            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+            sx={{
+              fontSize: { xs: "0.9rem", sm: "1rem" },
+              background: "#d14313",
+              color: "#ffffff",
+              boxShadow: "none",
+              backgroundImage: "none",
+              borderColor: "#d14313",
+              "&:hover": {
+                background: "#b7370f",
+                borderColor: "#b7370f",
+              },
+            }}
           >
             Cancel
           </Button>
@@ -874,7 +903,14 @@ const TransactionView = () => {
             onClick={handleConfirmDelete}
             variant="contained"
             color="error"
-            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+            sx={{
+              fontSize: { xs: "0.9rem", sm: "1rem" },
+              background: "#137fd1",
+              color: "#ffffff",
+              boxShadow: "none",
+              backgroundImage: "none",
+              "&:hover": { background: "#0f6fbf" },
+            }}
           >
             Delete
           </Button>
