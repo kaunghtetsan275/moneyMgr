@@ -280,12 +280,29 @@ const CategoryPage = () => {
             <Button
               variant="outlined"
               onClick={() => setDeleteModalOpen(false)}
+              sx={{
+                background: "#d14313",
+                color: "#ffffff",
+                boxShadow: "none",
+                backgroundImage: "none",
+                borderColor: "#d14313",
+                "&:hover": {
+                  background: "#b7370f",
+                  borderColor: "#b7370f",
+                },
+              }}
             >
               Cancel
             </Button>
             <Button
               variant="contained"
-              color="error"
+              sx={{
+                background: "#137fd1",
+                color: "#ffffff",
+                boxShadow: "none",
+                backgroundImage: "none",
+                "&:hover": { background: "#0f6fbf" },
+              }}
               onClick={() => {
                 if (deleteTarget?._id) {
                   categoryDeleteMutation.mutate(deleteTarget._id);
@@ -346,6 +363,17 @@ const CategoryPage = () => {
             <Button
               variant="outlined"
               onClick={() => setOpenCategoryModal(false)}
+              sx={{
+                background: "#d14313",
+                color: "#ffffff",
+                boxShadow: "none",
+                backgroundImage: "none",
+                borderColor: "#d14313",
+                "&:hover": {
+                  background: "#b7370f",
+                  borderColor: "#b7370f",
+                },
+              }}
             >
               Cancel
             </Button>
@@ -358,6 +386,13 @@ const CategoryPage = () => {
                   categoryType: newCategoryType,
                 })
               }
+              sx={{
+                background: "#137fd1",
+                color: "#ffffff",
+                boxShadow: "none",
+                backgroundImage: "none",
+                "&:hover": { background: "#0f6fbf" },
+              }}
             >
               Add
             </Button>
