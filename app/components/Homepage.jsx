@@ -36,6 +36,11 @@ const Homepage = () => {
         open={addModalOpen}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
+        sx={{
+          '& .MuiModal-backdrop': {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        }}
       >
         <Box sx={{ outline: "none" }}>
           <AddTransaction setAddModalOpen={setAddModalOpen} />

@@ -1,6 +1,90 @@
 import { createTheme } from "@mui/material/styles";
 
-const theme = createTheme({
+// Light theme configuration
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+    primary: {
+      main: "#1976d2", // Blue
+      contrastText: "#ffffff",
+    },
+    secondary: {
+      main: "#dc004e", // Pink accent
+      contrastText: "#ffffff",
+    },
+    success: {
+      main: "#2e7d32",
+      contrastText: "#ffffff",
+    },
+    error: {
+      main: "#d32f2f",
+      contrastText: "#ffffff",
+    },
+    info: {
+      main: "#0288d1",
+      contrastText: "#ffffff",
+    },
+    background: {
+      default: "#ffffff",
+      paper: "#f5f5f5",
+    },
+    text: {
+      primary: "#212121",
+      secondary: "#757575",
+      disabled: "#bdbdbd",
+    },
+  },
+  typography: {
+    fontFamily: "'Inter', 'Roboto', 'Arial', sans-serif",
+    fontWeightBold: 700,
+    h4: {
+      fontWeight: 700,
+      color: "#212121",
+    },
+    h5: {
+      fontWeight: 700,
+      color: "#212121",
+    },
+    button: {
+      textTransform: "none",
+      fontWeight: 600,
+      letterSpacing: 1,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          background: "linear-gradient(90deg, #1976d2 0%, #43a047 100%)",
+          color: "#fff",
+          border: 0,
+          boxShadow: "0 2px 8px 0 rgba(25, 118, 210, 0.15)",
+        },
+        containedPrimary: {
+          background: "linear-gradient(90deg, #1976d2 0%, #43a047 100%)",
+        },
+        containedSecondary: {
+          background: "linear-gradient(90deg, #dc004e 0%, #0288d1 100%)",
+        },
+        containedSuccess: {
+          background: "linear-gradient(90deg, #2e7d32 0%, #43a047 100%)",
+        },
+        containedError: {
+          background: "linear-gradient(90deg, #d32f2f 0%, #dc004e 100%)",
+        },
+        containedInfo: {
+          background: "linear-gradient(90deg, #0288d1 0%, #1976d2 100%)",
+        },
+      },
+    },
+  },
+  shape: {
+    borderRadius: 14,
+  },
+});
+
+// Dark theme configuration
+const darkTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
@@ -82,4 +166,9 @@ const theme = createTheme({
   },
 });
 
-export default theme;
+// Function to get theme based on mode
+export const getTheme = (mode) => {
+  return mode === 'dark' ? darkTheme : lightTheme;
+};
+
+export default darkTheme;

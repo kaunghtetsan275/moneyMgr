@@ -5,13 +5,42 @@ import { useRouter } from "next/navigation";
 import SpeedDial from "@mui/material/SpeedDial";
 import SpeedDialAction from "@mui/material/SpeedDialAction";
 import HomeIcon from "@mui/icons-material/Home";
-import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import CategoryIcon from "@mui/icons-material/Category";
 import WidgetsIcon from "@mui/icons-material/Widgets";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
+import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
+import { useTheme } from "next-themes";
 
 const SpeedDialNavbar = () => {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const getNextTheme = () => {
+    if (!mounted) return "system";
+    if (theme === "light") return "dark";
+    if (theme === "dark") return "system";
+    return "light";
+  };
+
+  const getThemeIcon = () => {
+    if (!mounted) return <SettingsBrightnessIcon />;
+    if (theme === "system") return <SettingsBrightnessIcon />;
+    return resolvedTheme === "dark" ? <Brightness4Icon /> : <Brightness7Icon />;
+  };
+
+  const getThemeName = () => {
+    if (!mounted) return "Theme";
+    if (theme === "system") return "System Theme";
+    return resolvedTheme === "dark" ? "Dark Theme" : "Light Theme";
+  };
+
   const actions = [
     { icon: <HomeIcon />, name: "Home", link: "/pages/home" },
     {
@@ -25,6 +54,12 @@ const SpeedDialNavbar = () => {
       link: "/pages/exportinfo",
     },
     { icon: <BarChartIcon />, name: "Analysis", link: "/pages/analysis" },
+    {
+      icon: getThemeIcon(),
+      name: getThemeName(),
+      action: () => setTheme(getNextTheme()),
+      isThemeToggle: true,
+    },
   ];
 
   const router = useRouter();
@@ -66,6 +101,8 @@ const SpeedDialNavbar = () => {
                   ? "#43a047"
                   : action.name === "Export Data"
                   ? "#29b6f6"
+                  : action.isThemeToggle
+                  ? "#e91e63"
                   : "#ffb300",
               // bgcolor: "#23272f",
               borderRadius: 2,
@@ -87,7 +124,11 @@ const SpeedDialNavbar = () => {
           onClick={() => {
             setOpen(false);
             setTimeout(() => {
-              router.push(action.link);
+              if (action.isThemeToggle) {
+                action.action();
+              } else {
+                router.push(action.link);
+              }
             }, 100);
           }}
         />

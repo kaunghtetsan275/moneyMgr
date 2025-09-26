@@ -173,7 +173,7 @@ const AddTransaction = ({ setAddModalOpen }) => {
         elevation={6}
         sx={{
           p: { xs: 2, sm: 4 },
-          bgcolor: form.type === "Income" ? "#23272f" : "#1e1e1e",
+          bgcolor: "background.paper",
           transition: "background 0.3s",
           position: "relative",
         }}
@@ -208,8 +208,8 @@ const AddTransaction = ({ setAddModalOpen }) => {
             p: 1,
             width: "100%",
             borderRadius: 3,
-            background: "linear-gradient(145deg, #1e1e2f, #2a2a40)",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            bgcolor: "background.default",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
           }}
         >
           <Button

@@ -10,8 +10,7 @@ import TitleHeader from "../header/TitleHeader";
 import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
+import ThemedChart from "./ThemedChart";
 import { useCategoryQuery } from "../../services/useCategoryServices";
 
 const Months = [
@@ -171,7 +170,7 @@ const AnalysisPage = () => {
         alignItems: "center",
       }}
     >
-      <TitleHeader text="Data Visualization" />
+      <TitleHeader text="Data Visualization"  />
 
       <Box sx={{ width: "100%", mb: { xs: 2, sm: 3 } }}>
         <Box
@@ -279,8 +278,7 @@ const AnalysisPage = () => {
                   </span>
                 ) : (
                   <>
-                    <HighchartsReact
-                      highcharts={Highcharts}
+                    <ThemedChart
                       key={`expense-${viewMode}-${currentYear}-${currentMonth}`}
                       options={{
                         chart: {
@@ -302,8 +300,8 @@ const AnalysisPage = () => {
                               enabled: true,
                               format: "{point.name}: ฿{point.y:,.0f}",
                               style: {
-                                color: "white",
-                                textOutline: "none",
+                                color: "#ffffff",
+                                textOutline: "1px contrast",
                               },
                               backgroundColor: "none",
                               borderWidth: 0,
@@ -371,8 +369,7 @@ const AnalysisPage = () => {
                   </span>
                 ) : (
                   <>
-                    <HighchartsReact
-                      highcharts={Highcharts}
+                    <ThemedChart
                       key={`income-${viewMode}-${currentYear}-${currentMonth}`}
                       options={{
                         chart: {
@@ -394,8 +391,8 @@ const AnalysisPage = () => {
                               enabled: true,
                               format: "{point.name}: ฿{point.y:,.0f}",
                               style: {
-                                color: "white",
-                                textOutline: "none",
+                                color: "#ffffff",
+                                textOutline: "1px contrast",
                               },
                               backgroundColor: "none",
                               borderWidth: 0,
@@ -687,8 +684,7 @@ const AnalysisPage = () => {
                 willChange: "transform, opacity",
               }}
             >
-              <HighchartsReact
-                highcharts={Highcharts}
+              <ThemedChart
                 options={{
                   chart: {
                     type: "column",
@@ -705,7 +701,6 @@ const AnalysisPage = () => {
                         ? "Monthly Expense"
                         : "Monthly Income",
                     style: {
-                      color: "white",
                       fontSize: "16px",
                       fontWeight: "500",
                     },
@@ -714,43 +709,23 @@ const AnalysisPage = () => {
                     categories: barChartData.map((item) => item.month),
                     title: {
                       text: "Month",
-                      style: {
-                        color: "white",
-                      },
                     },
-                    labels: {
-                      style: {
-                        color: "white",
-                      },
-                    },
-                    lineColor: "rgba(255, 255, 255, 0.3)",
-                    tickColor: "rgba(255, 255, 255, 0.3)",
                   },
                   yAxis: {
                     title: {
                       text: "Amount (THB)",
-                      style: {
-                        color: "white",
-                      },
                     },
-                    labels: {
-                      style: {
-                        color: "white",
-                      },
-                    },
-                    gridLineColor: "rgba(255, 255, 255, 0.1)",
                   },
                   tooltip: {
                     headerFormat:
                       '<span style="font-size:12px">{point.key}</span><br/>',
                     pointFormat:
                       '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>฿{point.y:,.0f}</b>',
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
                     borderWidth: 0,
                     shadow: true,
                   },
                   legend: {
-                    enabled: false, // Removes the legend completely
+                    enabled: false,
                   },
                   plotOptions: {
                     column: {
@@ -760,7 +735,7 @@ const AnalysisPage = () => {
                           brightness: -0.1,
                         },
                       },
-                      showInLegend: false, // Ensures series doesn't show in legend
+                      showInLegend: false,
                     },
                   },
                   credits: {

@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Button, Stack } from "@mui/material";
+import { Box, Typography, Button, Stack, Divider } from "@mui/material";
 import { useRouter } from "next/navigation";
 import HomeIcon from "@mui/icons-material/Home";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import CategoryIcon from "@mui/icons-material/Category";
+import ThemeToggle from "../sharedComp/ThemeToggle";
 // use native anchors to force full page reloads
 
 const Navbar = () => {
@@ -25,13 +26,17 @@ const Navbar = () => {
         border: "1px solid #23272f",
       }}
     >
-      <Typography
-        variant="h5"
-        fontWeight={700}
-        sx={{ mb: 4, letterSpacing: 1, color: "text.primary" }}
-      >
-        Money Manager
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4 }}>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          sx={{ letterSpacing: 1, color: "text.primary", flex: 1 }}
+        >
+          Money Manager
+        </Typography>
+        <ThemeToggle />
+      </Box>
+      <Divider sx={{ mb: 3 }} />
       <Stack spacing={2} padding={2}>
         <Button
           variant="contained"
